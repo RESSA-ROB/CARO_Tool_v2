@@ -1694,7 +1694,7 @@ public class SwingDemo extends JFrame{
      //  panel7.add(changedestext);
        panel7.add(sp);
 	  JButton risk1= new JButton("Risk Assessment");
-	  risk1.setBounds(50, 380, 200, 40);
+	  risk1.setBounds(50, 480, 200, 40);
 	  risk1.setFont(new Font("Calibri", 2, 16));
       risk1.setBackground(new Color(120, 168, 252));
       risk1.setForeground(Color.black);
@@ -1707,7 +1707,14 @@ public class SwingDemo extends JFrame{
 	        	change_propagation();
 	        	//create_riskgraph();
 	        }
-      }); 
+      });
+      set.setBounds(520, 270, 100, 40);
+	  set.setFont(new Font("Calibri", 2, 16));
+      set.setBackground(new Color(120, 168, 252));
+      set.setForeground(Color.black);
+      set.setToolTipText("Click to save value");
+      set.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+      panel7.add(set);
 		     		
 	}
 	public static void change_propagation() {
