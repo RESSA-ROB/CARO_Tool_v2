@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -181,6 +183,7 @@ public class SwingDemo extends JFrame{
 	static JButton loadNFR=new JButton("Load NFR");
 	static JButton savePriority = new JButton("Save Priority");
 	static JButton btn13= new JButton("Change/Risk");
+	static JButton set=new JButton("Set");
     static final JRadioButton conflict = new JRadioButton("Conflict");
     static final JRadioButton priority = new JRadioButton("NFR Priority");
     static final JRadioButton  both = new JRadioButton("Product");
@@ -191,6 +194,7 @@ public class SwingDemo extends JFrame{
 	static JTextArea frlabel2=new JTextArea(100,100);
 	static JTextArea nfrlabel1=new JTextArea(20,20);
 	static JTextArea nfrlabel2=new JTextArea(100,100);
+	static JTextArea nfrimpactvalue=new JTextArea(20,20);
 	static int loaddata=0;
     static int countfr=0, countnfr=0;
     static JTable frnfr=new JTable();
@@ -214,6 +218,7 @@ public class SwingDemo extends JFrame{
     static JComboBox nfrlist3=new JComboBox();
 	static JComboBox categorybox=new JComboBox();
 	static JComboBox componentbox=new JComboBox();
+	static JComboBox nfrimpactbox=new JComboBox();
 	static Edge1[][] prop_list;
 	static {
 	 fr1=new JTextArea(20,20);
@@ -1587,7 +1592,7 @@ public class SwingDemo extends JFrame{
 		 categorybox.addItem("");
 	     categorybox.addItem("FR");
 	     categorybox.addItem("NFR");
-	     categorybox.setBounds(250, 130, 100, 40);
+	     categorybox.setBounds(180, 130, 100, 40);
 	     panel7.add(categorybox);
 	     categorybox.setEditable(true);
 	     JLabel componentlabel= new JLabel("Select the component");
@@ -1595,9 +1600,27 @@ public class SwingDemo extends JFrame{
 	  			panel7.add(componentlabel);
 	  			
 	  			 componentbox.addItem("");
-	  		     componentbox.setBounds(250, 200, 100, 40);
+	  		     componentbox.setBounds(180, 200, 100, 40);
 	  		     panel7.add(componentbox);
-	  		  
+	  		     
+	   JLabel NFRImpactlabel= new JLabel("NFR Impacted");
+	  			NFRImpactlabel.setBounds(50,270,200, 60);
+	  			panel7.add(NFRImpactlabel);
+	  			
+	  			 nfrimpactbox.addItem("");
+	  			 nfrimpactbox.setBounds(180, 270, 100, 40);
+	  		     panel7.add(nfrimpactbox);     
+	  		
+	   JLabel NFRImpactvallabel= new JLabel("Change Value");
+	  			NFRImpactvallabel.setBounds(300,270,200, 60);
+	  			panel7.add(NFRImpactvallabel);
+	  		     
+	  			nfrimpactvalue.setFont(new Font("Calibri", 2, 14));
+	  			nfrimpactvalue.setToolTipText("Add value between 1-100");
+	  			nfrimpactvalue.setBounds(400, 270, 100, 40);
+	  			nfrimpactvalue.setBackground(new Color(204, 204, 204));
+	  			panel7.add(nfrimpactvalue);
+	  			
 	     categorybox.addActionListener(new ActionListener() {
 	    	 public void actionPerformed(ActionEvent e){
 	    	   String categoryselected=categorybox.getSelectedItem().toString();
@@ -1660,12 +1683,12 @@ public class SwingDemo extends JFrame{
 	    		 );
 	     
 	  JLabel changedeslabel= new JLabel("Change Description");
-	  changedeslabel.setBounds(50, 300, 200, 40);
+	  changedeslabel.setBounds(300, 150, 200, 40);
 	  panel7.add(changedeslabel);
 	  JTextArea changedestext=new JTextArea();
 	//  changedestext.setBounds(250, 300, 200, 80);
 	  JScrollPane sp = new JScrollPane(changedestext);       
-      sp.setBounds(250,300, 500,40);
+      sp.setBounds(300,200, 500,40);
       sp.setBackground(new Color(204, 204, 204));
        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
      //  panel7.add(changedestext);
@@ -2254,6 +2277,7 @@ public class SwingDemo extends JFrame{
 									
 							}
 						}
+					
 					}
 				}
 			}
