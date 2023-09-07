@@ -220,6 +220,10 @@ public class SwingDemo extends JFrame{
 	static JComboBox componentbox=new JComboBox();
 	static JComboBox nfrimpactbox=new JComboBox();
 	static Edge1[][] prop_list;
+	static Edge1[][] prop_frnfrlist;
+	static Edge1[][] prop_nfrnfrlist;
+	static int size=0, size2=0, size3=0;
+	static int cn=0;
 	static {
 	 fr1=new JTextArea(20,20);
      nfr4=new JTextArea(20,20);
@@ -1704,6 +1708,10 @@ public class SwingDemo extends JFrame{
       risk1.addActionListener(new ActionListener() {
 	        @Override
 	         public void actionPerformed(final ActionEvent e) {
+	        	size=0;
+	        	size2=0;
+	        	cn=0;
+	        	size3=0;
 	        	change_propagation();
 	        	//create_riskgraph();
 	        }
@@ -1720,9 +1728,9 @@ public class SwingDemo extends JFrame{
 	public static void change_propagation() {
 		String compselect=componentbox.getSelectedItem().toString();
 		Edge1 frfr=null;
-		
-		int size=0;
-		int cn=0;
+		Edge1 frnfr=null;
+		Edge1 nfrnfr=null;
+		int countfrnfr=0;
 		try {
 		FileReader fread3= new FileReader("FRFR.txt");
 		int readc=0;
@@ -1768,6 +1776,124 @@ public class SwingDemo extends JFrame{
     					k=k.next;
     				k.next=tempnode;
     			}
+   
+    			temp="";
+			}
+		fread3= new FileReader("FRNFR.txt");
+		readc=0;
+		temp="";
+		while((readc=fread3.read())!=-1) {
+			Edge1 tempnode=new Edge1();
+				c=(char)readc;
+				temp=temp.concat(Character.toString(c));
+				while((readc=fread3.read())!=32) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+				}
+				tempnode.id1=temp;
+				temp="";
+				while((readc=fread3.read())!=32) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+				}
+				tempnode.id2=temp;
+				temp="";
+				while((readc=fread3.read())!=10) {
+					if(readc>=48 && readc<=57) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+					}
+				}
+				int kval=Integer.valueOf(temp);
+				tempnode.value=kval;
+				tempnode.next=null;
+    			if(frnfr==null)
+    				frnfr=tempnode;
+    			else {
+    				Edge1 k=frnfr;
+    				while(k.next!=null)
+    					k=k.next;
+    				k.next=tempnode;
+    			}
+   
+    			temp="";
+			}
+		fread3= new FileReader("FRNFR.txt");
+		readc=0;
+		temp="";
+		while((readc=fread3.read())!=-1) {
+			Edge1 tempnode=new Edge1();
+				c=(char)readc;
+				temp=temp.concat(Character.toString(c));
+				while((readc=fread3.read())!=32) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+				}
+				tempnode.id1=temp;
+				temp="";
+				while((readc=fread3.read())!=32) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+				}
+				tempnode.id2=temp;
+				temp="";
+				while((readc=fread3.read())!=10) {
+					if(readc>=48 && readc<=57) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+					}
+				}
+				int kval=Integer.valueOf(temp);
+				tempnode.value=kval;
+				tempnode.next=null;
+    			if(frnfr==null)
+    				frnfr=tempnode;
+    			else {
+    				Edge1 k=frnfr;
+    				while(k.next!=null)
+    					k=k.next;
+    				k.next=tempnode;
+    			}
+   
+    			temp="";
+			}
+		fread3= new FileReader("NFRNFR.txt");
+		readc=0;
+		temp="";
+		while((readc=fread3.read())!=-1) {
+			Edge1 tempnode=new Edge1();
+				c=(char)readc;
+				temp=temp.concat(Character.toString(c));
+				while((readc=fread3.read())!=32) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+				}
+				tempnode.id1=temp;
+				temp="";
+				while((readc=fread3.read())!=32) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+				}
+				tempnode.id2=temp;
+				temp="";
+				while((readc=fread3.read())!=10) {
+					if(readc>=48 && readc<=57) {
+					c=(char)readc;
+    				temp=temp.concat(Character.toString(c));
+					}
+				}
+				int kval=Integer.valueOf(temp);
+				tempnode.value=kval;
+				tempnode.next=null;
+    			if(nfrnfr==null)
+    				nfrnfr=tempnode;
+    			else {
+    				Edge1 k=nfrnfr;
+    				while(k.next!=null)
+    					k=k.next;
+    				k.next=tempnode;
+    			}
+   
     			temp="";
 			}
 		}catch(IOException e) {
@@ -1904,9 +2030,45 @@ public class SwingDemo extends JFrame{
 			}
 			System.out.println();
 		}
-		create_riskgraph(size, cn);
+		prop_frnfrlist=new Edge1[1000][1];
+		Edge1 root=frnfr;
+		size2=0;
+		while(root!=null)
+		{
+			if(root.id1.compareTo(compselect)==0 && root.value>=25) {
+				Edge1 nodein=new Edge1();
+				nodein.id1=root.id1;
+				nodein.id2=root.id2;
+				nodein.value=root.value;
+				prop_frnfrlist[size2][0]=nodein;
+				size2++;
+			}
+			root=root.next;
+		}
+		prop_nfrnfrlist=new Edge1[1000][1];
+		root=frnfr;
+		size3=0;
+		while(root!=null)
+		{
+			if(root.id1.compareTo(compselect)==0 && root.value>=25) {
+				Edge1 root2=nfrnfr;
+				while(root2!=null) {
+					if(root2.id1.compareTo(root.id2)==0 || root2.id2.compareTo(root.id2)==0) {
+						Edge1 nodein=new Edge1();
+						nodein.id1=root2.id1;
+						nodein.id2=root2.id2;
+						nodein.value=root2.value;
+						prop_nfrnfrlist[size3][0]=nodein;
+						size3++;
+					}
+					root2=root2.next;
+				}
+			}
+			root=root.next;
+		}
+		create_riskgraph();
 	}
-	public static void create_riskgraph(int size, int cn) {
+	public static void create_riskgraph() {
 		Node fr=null;
 		Node nfr=null;
 		Edge1 frnfr=null;
@@ -2017,7 +2179,7 @@ public class SwingDemo extends JFrame{
     				//System.out.println("temp= "+tempnode.value);
     				//System.out.println(tempnode.id1+" "+tempnode.id2+" "+tempnode.value);
     				//readc=fread3.read();
-    				System.out.println("Hello!!");
+    				
     				//if(readc==-1)
     					//break;
     				tempnode.next=null;
@@ -2079,7 +2241,7 @@ public class SwingDemo extends JFrame{
         			temp="";
 				}
 			fread4.close();
-			/*FileReader fread5= new FileReader("NFRNFR.txt");
+			FileReader fread5= new FileReader("NFRNFR.txt");
 			readc=0;
 			temp="";
 			while((readc=fread5.read())!=-1) {
@@ -2120,7 +2282,7 @@ public class SwingDemo extends JFrame{
         			}
         			temp="";
 				}
-			fread5.close();*/
+			fread5.close();
 			}catch(Exception e2) {
 				System.out.println("File not found!");
 			}
@@ -2141,20 +2303,12 @@ public class SwingDemo extends JFrame{
 		 while(frfrroot!=null) {
 			 	String v1=frfrroot.id1;
 	   	 		String v2=frfrroot.id2;
-	   	 		//System.out.println(v1);
-	   	 		//System.out.println(v2);
-	   	 		
 	   	 		String v3=String.valueOf(frfrroot.value);
 	   	 		String label=v1+"-"+v2;
 	   	 		final Edge edge1 = graph.addEdge(label, v2, v1, true);
 	   	 		edge1.addAttribute("layout.weight", 16);
 	   	 		edge1.addAttribute("ui.label", v3);
-	   	 		//edge1.addAttribute("font-size", 20);
-	   	 		System.out.println("v1= "+v1+" compselect= "+compselect);
-	   	 		//if(v1.compareTo(compselect)==0)
-	   	 			//edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(139,69,19); text-color: rgb(0,0,0);");
-	   	 		//else
-	   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
+	   	 		edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
 	   	 		frfrroot=frfrroot.next;
 		 }
 		 Edge1 frnfrroot=frnfr;
@@ -2166,9 +2320,14 @@ public class SwingDemo extends JFrame{
 	   	 		final Edge edge1 = graph.addEdge(label, v1, v2, true);
 	   	 		edge1.addAttribute("layout.weight", 16);
 	   	 		edge1.addAttribute("ui.label", v3);
-	   	 		//edge1.addAttribute("font-size", 20);
-	   	 	if(v1.compareTo(compselect)==0)
-   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(139,69,19); text-color: rgb(0,0,0);");
+	   	 	if(v1.compareTo(compselect)==0) {
+	   	 		if(frnfrroot.value>=25 && frnfrroot.value<50)
+	   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,255,51); text-color: rgb(0,0,0);");
+	   	 		else if (frnfrroot.value>=50 && frnfrroot.value<75)
+	   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,128,0); text-color: rgb(0,0,0);");
+	   	 		else
+	   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,0,0); text-color: rgb(0,0,0);");
+	   	 	}
 	   	 	else
 	   	 		edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
 	   	 		frnfrroot=frnfrroot.next;
@@ -2186,7 +2345,12 @@ public class SwingDemo extends JFrame{
 	   	 		while(frnfrroot!=null) {
 	   	 			if(frnfrroot.id1.compareTo(compselect)==0) {
 	   	 				if(v1.compareTo(frnfrroot.id2)==0 || v2.compareTo(frnfrroot.id2)==0) {
-	   	 				edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(139,69,19); text-color: rgb(0,0,0);");
+	   	 				if(nfrnfrroot.value>=25 && nfrnfrroot.value<50)	
+	   	 					edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,255,51); text-color: rgb(0,0,0);");
+	   	 				else if(nfrnfrroot.value>=50 && nfrnfrroot.value<75)
+	   	 					edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,128,0); text-color: rgb(0,0,0);");
+	   	 				else
+	   	 				edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,0,0); text-color: rgb(0,0,0);");
 	   	 				}
 	   	 				else
 	   	 				edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
@@ -2198,23 +2362,7 @@ public class SwingDemo extends JFrame{
 	   	 		
 	   	 		nfrnfrroot=nfrnfrroot.next;
 		 }
-			frfrroot=frfr;
-			Node templist=null;
-			while(frfrroot!=null) {
-				if(frfrroot.id1.compareTo(compselect)==0) {
-					Node t=new Node();
-					t.id=frfrroot.id2;
-					if(templist==null)
-						templist=t;
-					else {
-						Node t2=templist;
-						while(t2.next!=null)
-							t2=t2.next;
-						t2.next=t;
-					}
-				}
-				frfrroot=frfrroot.next;
-			}
+		
 		 for (final org.graphstream.graph.Node node : graph) {
 				node.addAttribute("ui.label", node.getId());
 				String k= node.getId();
@@ -2222,7 +2370,13 @@ public class SwingDemo extends JFrame{
 				if(k.compareTo(compselect)==0) {
 					node.addAttribute("layout.weight", 150);
 					node.addAttribute("ui.style", "shape: circle; fill-color: rgb(102,0,0); text-color: rgb(255,255,255);");
+					/*try {
+						Thread.sleep(1000);
+					}catch(Exception sl) {
+						
+					}*/
 				}
+			
 				else if(k.contains("fr") && !k.contains("nfr")) {
 				
 					node.addAttribute("layout.weight", 150);
@@ -2238,60 +2392,64 @@ public class SwingDemo extends JFrame{
 					for(int m=0; m<cn; m++) {
 						if(prop_list[i][m]!=null) {
 							if(prop_list[i][m].id2.compareTo(k)==0) {
-								System.out.println("Matched Yo");
+								//System.out.println("Matched Yo");
 								System.out.println(prop_list[i][m].prob);
 								double cvalue=prop_list[i][m].prob;
 								if(prop_list[i][m].cprob!=0) {
 									cvalue= prop_list[i][m].cprob;
 									if(cvalue>=25 && cvalue<50) {
-										System.out.println("Here1");
+										//System.out.println("Here1");
 										node.addAttribute("layout.weight", 150);
 										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 255, 51); text-color: rgb(255,255,255);");
 									}
 									else if(cvalue>=50 && cvalue<75) {
-										System.out.println("Here2");
+										//System.out.println("Here2");
 										node.addAttribute("layout.weight", 150);
 										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 128, 0); text-color: rgb(255,255,255);");
 										
 									}
 									else
 									{
-										System.out.println("Here3");
+										//System.out.println("Here3");
 										node.addAttribute("layout.weight", 150);
 										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255,0,0); text-color: rgb(255,255,255);");
 									}
 								}
 								else {
 								if(prop_list[i][m].prob>=0.25 && prop_list[i][m].prob<0.50) {
-									System.out.println("Here1");
+									//System.out.println("Here1");
 									node.addAttribute("layout.weight", 150);
 									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 255, 51); text-color: rgb(255,255,255);");
 								}
 								else if(prop_list[i][m].prob>=0.50 && prop_list[i][m].prob<0.75) {
-									System.out.println("Here2");
+									//System.out.println("Here2");
 									node.addAttribute("layout.weight", 150);
 									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 128, 0); text-color: rgb(255,255,255);");
 									
 								}
 								else
 								{
-									System.out.println("Here3");
+									//System.out.println("Here3");
 									node.addAttribute("layout.weight", 150);
 									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255,0,0); text-color: rgb(255,255,255);");
 								}
 								}
 								
+								/*try {
+									Thread.sleep(1000);
+								}catch(Exception sl) {
 									
+								}*/	
 							}
 						}
-					
+						
 					}
 				}
 			}
-		 
 		 Viewer viewer = graph.display();
 		 viewer.enableAutoLayout();
 		 viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.HIDE_ONLY);
+
 	}
 	public static void createframe()
 	{
