@@ -2573,6 +2573,9 @@ public class SwingDemo extends JFrame{
 	      Image image = ((ImageIcon) icon).getImage(); // transform it 
 	      Image newimg = image.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH); 
 	      icon = new ImageIcon(newimg); 
+	      Icon icon2 = new ImageIcon("caroicon.png");
+	      Image image2 = ((ImageIcon) icon2).getImage();
+	      mainframe.setIconImage(image2);
 	      button7 = new JButton(icon);
 	      panel5.setLayout(null); 
 	      Font f = new Font("TimesRoman",Font.BOLD+Font.ITALIC,25);
