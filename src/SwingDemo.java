@@ -184,6 +184,7 @@ public class SwingDemo extends JFrame{
 	static JButton savePriority = new JButton("Save Priority");
 	static JButton btn13= new JButton("Change/Risk");
 	static JButton set=new JButton("Set");
+	static JButton loadnfr=new JButton("Load NFR");
     static final JRadioButton conflict = new JRadioButton("Conflict");
     static final JRadioButton priority = new JRadioButton("NFR Priority");
     static final JRadioButton  both = new JRadioButton("Product");
@@ -222,6 +223,7 @@ public class SwingDemo extends JFrame{
 	static Edge1[][] prop_list;
 	static Edge1[][] prop_frnfrlist;
 	static Edge1[][] prop_nfrnfrlist;
+	static Edge1 frnfrlisttemp=null;
 	static int size=0, size2=0, size3=0;
 	static int cn=0;
 	static {
@@ -1585,6 +1587,7 @@ public class SwingDemo extends JFrame{
 		
 	}
 	public static void construct_panel7() {
+		frnfrlisttemp=null;
 		Font f = new Font("TimesRoman",Font.BOLD+Font.ITALIC,25);
   	  	label13.setFont(f);
   	  	label13.setBounds(300, 10, 500, 40);
@@ -1606,7 +1609,7 @@ public class SwingDemo extends JFrame{
 	  			 componentbox.addItem("");
 	  		     componentbox.setBounds(180, 200, 100, 40);
 	  		     panel7.add(componentbox);
-	  		     
+	  		   	componentbox.setEditable(true);
 	   JLabel NFRImpactlabel= new JLabel("NFR Impacted");
 	  			NFRImpactlabel.setBounds(50,270,200, 60);
 	  			panel7.add(NFRImpactlabel);
@@ -1614,7 +1617,7 @@ public class SwingDemo extends JFrame{
 	  			 nfrimpactbox.addItem("");
 	  			 nfrimpactbox.setBounds(180, 270, 100, 40);
 	  		     panel7.add(nfrimpactbox);     
-	  		
+	  		   nfrimpactbox.setEditable(true);
 	   JLabel NFRImpactvallabel= new JLabel("Change Value");
 	  			NFRImpactvallabel.setBounds(300,270,200, 60);
 	  			panel7.add(NFRImpactvallabel);
@@ -1697,6 +1700,13 @@ public class SwingDemo extends JFrame{
        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
      //  panel7.add(changedestext);
        panel7.add(sp);
+       loadnfr.setBounds(830, 200, 100, 40);
+ 	  loadnfr.setFont(new Font("Calibri", 2, 16));
+       loadnfr.setBackground(new Color(120, 168, 252));
+       loadnfr.setForeground(Color.black);
+       loadnfr.setToolTipText("Click to load NFRs");
+       loadnfr.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+       panel7.add(loadnfr);
 	  JButton risk1= new JButton("Risk Assessment");
 	  risk1.setBounds(50, 480, 200, 40);
 	  risk1.setFont(new Font("Calibri", 2, 16));
@@ -1723,7 +1733,111 @@ public class SwingDemo extends JFrame{
       set.setToolTipText("Click to save value");
       set.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
       panel7.add(set);
-		     		
+      loadnfr.addActionListener(new ActionListener() {
+	    	 public void actionPerformed(ActionEvent e){
+	    		 String componentselected=componentbox.getSelectedItem().toString();
+			     nfrimpactbox.removeAllItems();
+			     nfrimpactbox.addItem("");
+			     if(componentselected.compareTo("")!=0) {
+			    	 
+			     try {
+			    	FileReader fread=new FileReader("FRNFR.txt");
+			    	int readc=0;
+		 			char c;
+		 			String temp1="";
+		 			String temp2="";
+		 			String temp3="";
+		 			while((readc=fread.read())!=-1) {
+		     				c=(char)readc;
+		     				temp1=temp1.concat(Character.toString(c));
+		     				while((readc=fread.read())!=32) {
+		     					c=(char)readc;
+		 	    				temp1=temp1.concat(Character.toString(c));
+		     				}
+		     				temp2="";
+		     				while((readc=fread.read())!=32) {
+		     					c=(char)readc;
+		 	    				temp2=temp2.concat(Character.toString(c));
+		     				}
+		     				temp3="";
+		     			while((readc=fread.read())!=10) {
+		    					if(readc>=48 && readc<=57) {
+		    					c=(char)readc;
+		        				temp3=temp3.concat(Character.toString(c));
+		    					}
+		    				
+		     				if(readc==-1)
+		     					break;
+		     			}
+		     			if(temp1.compareTo(componentselected)==0)
+		     				nfrimpactbox.addItem(temp2);
+		     			Edge1 newnode=new Edge1();
+		     			newnode.id1=temp1;
+		     			newnode.id2=temp2;
+		     			newnode.value=Integer.valueOf(temp3);
+		     			newnode.next=null;
+		     			if(frnfrlisttemp==null)
+		     				frnfrlisttemp=newnode;
+		     			else {
+		     				System.out.println("Inserted");
+		     				Edge1 k=frnfrlisttemp;
+		     				while(k.next!=null) {
+		     					k=k.next;
+		     				}
+		     				k.next=newnode;
+		     			}
+		     			System.out.println("List created");
+		     		      Edge1 t=frnfrlisttemp;
+		     		      while(t!=null) {
+		     		    	  System.out.println("Here"+t.id1+" "+t.id2+" "+t.value);
+		     		    	  t=t.next;
+		     		      }
+		     			temp1="";
+		     		}
+		 			fread.close();
+			     }catch(IOException e5) {
+			    	 
+			     }
+	    	 }
+	    	 }
+      });
+      
+      set.addActionListener(new ActionListener() {
+	    	 public void actionPerformed(ActionEvent e){
+	      		 String componentselected=componentbox.getSelectedItem().toString();
+	      		 String nfrselected=nfrimpactbox.getSelectedItem().toString();
+	      		 String cval=nfrimpactvalue.getText();
+	      		 int cval2=Integer.valueOf(cval);
+	      		 if(cval2<0 || cval2>100)
+	      		 {
+	      			 JOptionPane.showMessageDialog(panel7, "Impact value outside valid range");
+	      		 }
+	      		 else {
+	      			try { 
+	      			FileWriter fw1 = new FileWriter("FRNFR.txt", false); 
+    				BufferedWriter bw1 = new BufferedWriter(fw1);
+	      			 Edge1 ktemp=frnfrlisttemp;
+	      			 while(ktemp!=null) {
+	      				 if(ktemp.id1.compareTo(componentselected)==0 && ktemp.id2.compareTo(nfrselected)==0)
+	      					 ktemp.value=cval2;
+	      				 ktemp=ktemp.next;
+	      			 }
+	      			 ktemp=frnfrlisttemp;
+	      			 System.out.println("Writing");
+	      			 while(ktemp!=null) {
+	      				
+	      				 bw1.write(ktemp.id1+" "+ktemp.id2+" "+ktemp.value);
+	      				 bw1.newLine(); 
+	      				 ktemp=ktemp.next;
+	      			 }
+	      			bw1.close();
+    				fw1.close();
+	      			}catch(IOException e5) {
+	      				System.out.println("File not found!");
+	      			}
+	      		 }
+	    	 }
+      });	
 	}
 	public static void change_propagation() {
 		String compselect=componentbox.getSelectedItem().toString();
@@ -2454,7 +2568,7 @@ public class SwingDemo extends JFrame{
 	public static void createframe()
 	{
 		
-	      mainframe.setSize(1000, 800);
+	      mainframe.setSize(1100, 800);
 	      Icon icon = new ImageIcon("C:\\Users\\refresh.png");
 	      Image image = ((ImageIcon) icon).getImage(); // transform it 
 	      Image newimg = image.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH); 
