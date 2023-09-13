@@ -1,2 +1,3 @@
 fr1 nfr1 50
 fr1 nfr2 25
+fr5 nfr2 -25
