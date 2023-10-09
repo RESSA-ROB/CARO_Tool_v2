@@ -128,8 +128,8 @@ class Edge1
     String id2;
     String type;
     int value;
+    int prevvalue;
     double prob;
-    double cprob;
     Edge1 next;
     
 }
@@ -142,9 +142,42 @@ class Edge2
 class Node
 {
     String id;
+    String description;
     int priority;
     int satisfaction;
+    double impact;
     Node next;
+}
+class FRDep
+{
+    String id;
+    int val;
+    FRDep next;
+}
+class BC
+{
+    String Nid;
+    FRDep begin;
+    BC next;
+}
+class MC
+{
+    BC Blist;
+    int CEdge;
+    MC next;
+}
+class Rpair
+{
+    String id1;
+    String id2;
+    int done;
+    Rpair next;
+}
+class matrix{
+	int row;
+	int col;
+double val;
+	matrix next;
 }
 public class SwingDemo extends JFrame{
 	static JFrame mainframe = new JFrame();
@@ -171,6 +204,7 @@ public class SwingDemo extends JFrame{
 	static JLabel label11= new JLabel("Functional Requirements");
 	static JLabel label12= new JLabel("Non-Functional Requirements");
 	static JLabel label13=new JLabel("Change Requests and Risk Assessment");
+	static JLabel label14= new JLabel("NFR Priority");
 	static JButton btn1 = new JButton("Relations");
 	static JButton btn2 = new JButton("Generate PO");
 	static JButton btn3 = new JButton("View Dashboard");
@@ -180,13 +214,18 @@ public class SwingDemo extends JFrame{
 	static JButton button7;
 	static JButton btn8= new JButton("Save FR");
 	static JButton btn9= new JButton("Save NFR");
-	
 	static JButton btn12= new JButton("Specify Requirements");
-	static JButton loadNFR=new JButton("Load NFR");
+	static JButton loadNFR=new JButton("Load FR/NFR");
 	static JButton savePriority = new JButton("Save Priority");
 	static JButton btn13= new JButton("Change/Risk");
 	static JButton set=new JButton("Set");
-	static JButton loadnfr=new JButton("Load NFR");
+	static JButton loadnfr=new JButton("Load NFR/FR");
+	static JButton  addFrozen=new JButton("ADD");
+	static JButton delFrozen=new JButton("Delete");
+	static JButton generate = new JButton("Generate Optimal PO");
+	static JButton viewgraph = new JButton("View Optimal PO graph");
+	static JButton generate2 = new JButton("Generate Alternate PO");
+	static JButton viewgraph2 = new JButton("View Alternate PO graph");
     static final JRadioButton conflict = new JRadioButton("Conflict");
     static final JRadioButton priority = new JRadioButton("NFR Priority");
     static final JRadioButton  both = new JRadioButton("Product");
@@ -198,6 +237,12 @@ public class SwingDemo extends JFrame{
 	static JTextArea nfrlabel1=new JTextArea(20,20);
 	static JTextArea nfrlabel2=new JTextArea(100,100);
 	static JTextArea nfrimpactvalue=new JTextArea(20,20);
+	static JTextArea riskexpose=new JTextArea(100, 100);
+	static JTextArea riskmeasure=new JTextArea(100, 100);
+	static JTextArea nfrpriority=new JTextArea(20,20);
+	static JTextArea  frozenFRs=new JTextArea(20,20);
+	static JTextArea textOrder1=new JTextArea(100, 200);
+	static JScrollPane scrollpane1=new JScrollPane(textOrder1);
 	static int loaddata=0;
     static int countfr=0, countnfr=0;
     static JTable frnfr=new JTable();
@@ -205,11 +250,20 @@ public class SwingDemo extends JFrame{
     static Edge1 E_FN=null;
     static Edge1 E_NN=null;
     static Edge2 E_FF=null;
+    static Edge1 nfrnfrroot=null;
+    static Edge1 frnfrroot=null;
+    static Edge1 frfrroot=null;
+    static Node frroot=null;
+    static Node nfrroot=null;
     static int flag=1;
     static Node NFR=null;
     static Node FR=null;
     static Node g, frhead;
-    static Node frroot, nfrroot;
+    static Node Fro=null;
+    static BC bcHead=null;
+    static MC mcHead=null;
+    static Rpair root=null;
+    static matrix wn,wd;
     static JFrame fp_frame=new JFrame("Set values of FP attributes");
     static JSlider slider1 = new JSlider(0, 0, 10, 0);
     static int choice=0;
@@ -223,6 +277,7 @@ public class SwingDemo extends JFrame{
 	static JComboBox categorybox=new JComboBox();
 	static JComboBox componentbox=new JComboBox();
 	static JComboBox nfrimpactbox=new JComboBox();
+	static JComboBox frofr=new JComboBox();
 	static Edge1[][] prop_list;
 	static Edge1[][] prop_frnfrlist;
 	static Edge1[][] prop_nfrnfrlist;
@@ -233,6 +288,7 @@ public class SwingDemo extends JFrame{
 	 fr1=new JTextArea(20,20);
      nfr4=new JTextArea(20,20);
 	}
+	static JScrollPane scrollPaneFR = new JScrollPane(frozenFRs);
 	public static void construct_panel6() {
 		// Setting heading
 				Font f = new Font("TimesRoman",Font.BOLD+Font.ITALIC,25);
@@ -359,7 +415,7 @@ public class SwingDemo extends JFrame{
 			                				BufferedWriter bw1 = new BufferedWriter(fw1);
 			                				bw1.write(fr1+" "+fr2);
 			                				bw1.newLine();
-			                				System.out.println(fr1+" "+fr2);
+			                				//System.out.println(fr1+" "+fr2);
 			                				bw1.close();
 			                				fw1.close();
 		                				}
@@ -368,7 +424,7 @@ public class SwingDemo extends JFrame{
 		                				FileWriter fw1 = new FileWriter("FR.txt", true); 
 		                				BufferedWriter bw1 = new BufferedWriter(fw1);
 		                				bw1.write(fr1+" "+fr2);
-		                				System.out.println(fr1+" "+fr2);
+		                				//System.out.println(fr1+" "+fr2);
 		                				bw1.newLine();
 		                				bw1.close();
 		                				fw1.close();
@@ -403,6 +459,18 @@ public class SwingDemo extends JFrame{
 			         label10.setBounds(50, 520, 200, 100);
 			         panel6.add(label10);
 			         
+			         label14.setFont(new Font("Calibri", 2, 14));
+			         label14.setToolTipText("Add NFR Priority");
+			         label14.setBounds(280, 490, 100, 40);
+			         label14.setBackground(new Color(204, 204, 204));
+			          panel6.add(label14);
+			          
+			          nfrpriority.setFont(new Font("Calibri", 2, 14));
+			          nfrpriority.setToolTipText("Add priority value in the range 1-100");
+			          nfrpriority.setBounds(360, 480, 100, 40);
+			          nfrpriority.setBackground(new Color(204, 204, 204));
+			          panel6.add(nfrpriority);
+			         
 			         nfrlabel2.setFont(new Font("Calibri", 2, 14));
 			        nfrlabel2.setBounds(120, 540, 300, 60);
 			        nfrlabel2.setBackground(new Color(204, 204, 204));
@@ -428,6 +496,7 @@ public class SwingDemo extends JFrame{
 			                 
 			            	String nfr1=nfrlabel1.getText();
 			                String nfr2=nfrlabel2.getText();
+			                String nfr3=nfrpriority.getText();
 			                int len=nfr1.length();
 			                char[] nfr1char=nfr1.toCharArray();
 			                int checkflag=0;
@@ -473,50 +542,100 @@ public class SwingDemo extends JFrame{
 			                	if(nfr2.compareTo("")==0) {
 			                		JOptionPane.showMessageDialog(panel6, "Enter a description!");
 			                	}
+			                	else if(nfr3.compareTo("")==0) {
+			                		JOptionPane.showMessageDialog(panel6, "Enter a priority value!");
+			                	}
 			                	else {
 			                		try {
 			                			File f1=new File("NFR.txt");
-			                			checkflag=0;
+			                			
 			                			if(f1.exists()) {
-			                				
-			                				FileReader fread1=new FileReader("NFR.txt");
-			                				int readc=0;
+			                				checkflag=0;
+			                				FileReader fread= new FileReader("NFR.txt");
+			                				//NFR List Creation
+			                				nfrroot=null;
 			                				char c;
+			                				int readc=0;
 			                				String temp="";
-			                				while((readc=fread1.read())!=-1) {
+			                				while((readc=fread.read())!=-1) {
+			                					Node tempnode=new Node();
 			                	    				c=(char)readc;
 			                	    				temp=temp.concat(Character.toString(c));
-			                	    				while((readc=fread1.read())!=32) {
+			                	    				while((readc=fread.read())!=32) {
 			                	    					c=(char)readc;
-				                	    				temp=temp.concat(Character.toString(c));
+			                		    				temp=temp.concat(Character.toString(c));
 			                	    				}
-			                	    			if(nfr1.compareTo(temp)==0) {
-			                	    				JOptionPane.showMessageDialog(panel6, "NFR with same label exists");
-			                	    				checkflag=1;
-			                	    				break;
+			                	    				tempnode.id=temp;
+			                	    				temp="";
+			                	    			while((readc=fread.read())!=32) {
+			                	    				c=(char)readc;
+		                		    				temp=temp.concat(Character.toString(c));
+			                					}
+			                	    			tempnode.description=temp;
+			                	    			temp="";
+			                	    			while((readc=fread.read())!=10) {
+			                	    				if(readc>=48 && readc<=57) {
+			                							c=(char)readc;
+			                		    				temp=temp.concat(Character.toString(c));
+			                	    				}
+			                					}
+			                	    			tempnode.priority=Integer.valueOf(temp);
+			                	    			tempnode.next=null;
+			                	    			if(nfrroot==null)
+			                	    				nfrroot=tempnode;
+			                	    			else {
+			                	    				Node k=nfrroot;
+			                	    				while(k.next!=null)
+			                	    					k=k.next;
+			                	    				k.next=tempnode;
 			                	    			}
-			                	    			while((readc=fread1.read())!=10) {
-			                	    				if(readc==-1)
-			                	    					break;
-		                	    					
-		                	    				}
 			                	    			temp="";
 			                	    		}
+			                				fread.close();
+			                				//System.out.println("Done Checking");
+			                				Node troot=nfrroot;
+			                				int pval=Integer.valueOf(nfr3);
+			                				while(troot!=null) {
+			                					if(troot.id.compareTo(nfr1)==0) {
+			                						troot.priority=pval;
+			                						troot.description=nfr2;
+			                						checkflag=1;
+			                					}
+			                				
+			                					troot=troot.next;
+			                				}
+			                				troot=nfrroot;
+			                			
 			                				if(checkflag==0) {
 			                					FileWriter fw1 = new FileWriter("NFR.txt", true); 
 				                				BufferedWriter bw1 = new BufferedWriter(fw1);
-				                				bw1.write(nfr1+" "+nfr2);
+				                				bw1.write(nfr1+" "+nfr2+" "+nfr3);
 				                				bw1.newLine();
-				                				System.out.println(nfr1+" "+nfr2);
+				                				//System.out.println(nfr1+" "+nfr2);
 				                				bw1.close();
 				                				fw1.close();
 			                				}
+			                				else if(checkflag==1) {
+			                					troot=nfrroot;
+			                					FileWriter fw1 = new FileWriter("NFR.txt", false); 
+				                				BufferedWriter bw1 = new BufferedWriter(fw1);
+			                					while(troot!=null) {
+			                						bw1.write(troot.id+" "+troot.description+" "+troot.priority);
+					                				bw1.newLine();
+					                				troot=troot.next;
+			                					}
+			                					bw1.close();
+				                				fw1.close();
+			                					JOptionPane.showMessageDialog(panel6, "Data updated.");
+			                				}
+			                				
+			                				
 			                			}
 			                			else {
 			                				FileWriter fw1 = new FileWriter("NFR.txt", true); 
 			                				BufferedWriter bw1 = new BufferedWriter(fw1);
-			                				bw1.write(nfr1+" "+nfr2);
-			                				System.out.println(nfr1+" "+nfr2);
+			                				bw1.write(nfr1+" "+nfr2+" "+nfr3);
+			                				//System.out.println(nfr1+" "+nfr2);
 			                				bw1.newLine();
 			                				bw1.close();
 			                				fw1.close();
@@ -897,10 +1016,10 @@ public class SwingDemo extends JFrame{
 				}
 			}
 			
-			System.out.println("Contents of E_FN:");
+			//System.out.println("Contents of E_FN:");
 			Edge1 h=E_FN;
 			while(h!=null) {
-				System.out.println(h.id1+" | "+h.id2+" | "+h.value);
+				//System.out.println(h.id1+" | "+h.id2+" | "+h.value);
 				h=h.next;
 			}
 			for(int i=countfr;i<countfr+countnfr;i++) {
@@ -939,10 +1058,10 @@ public class SwingDemo extends JFrame{
 			}
 		}
 			
-				System.out.println("Contents of E_NN:");
+			//	System.out.println("Contents of E_NN:");
 				h=E_NN;
 				while(h!=null) {
-					System.out.println(h.id1+" | "+h.id2+" | "+h.value);
+					//System.out.println(h.id1+" | "+h.id2+" | "+h.value);
 					h=h.next;
 				}
 				for(int i=0;i<countfr;i++) {
@@ -977,10 +1096,10 @@ public class SwingDemo extends JFrame{
 					}
 				}
 				
-				System.out.println("Contents of E_FF:");
+				//System.out.println("Contents of E_FF:");
 				Edge2 h2=E_FF;
 				while(h2!=null) {
-					System.out.println(h2.id1+" | "+h2.id2);
+					//System.out.println(h2.id1+" | "+h2.id2);
 					h2=h2.next;
 				}
 			for(int i=1;i<=countfr;i++) {
@@ -1009,16 +1128,16 @@ public class SwingDemo extends JFrame{
 					k.next=temp;
 				}
 			}
-			System.out.println("The FRs are:");
+			//System.out.println("The FRs are:");
 		    	Node k=FR;
 		    	while(k!=null) {
-		    		System.out.println(k.id);
+		    	//	System.out.println(k.id);
 		    		k=k.next;
 		    	}
-		    	System.out.println("The NFRs are:");
+		    	//System.out.println("The NFRs are:");
 		    	Node m=NFR;
 		    	while(m!=null) {
-		    		System.out.println(m.id);
+		    	//	System.out.println(m.id);
 		    		m=m.next;
 		    	}
 		    	
@@ -1051,7 +1170,7 @@ public class SwingDemo extends JFrame{
 	    	}
 	    	Node p=frhead;
 	    	while(p!=null) {
-	    		System.out.println(p.id);
+	    		//System.out.println(p.id);
 	    		p=p.next;
 	    	}
 	    	
@@ -1061,7 +1180,7 @@ public class SwingDemo extends JFrame{
 	            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 	        }
 	        catch (Exception e) {
-	            System.out.println("Look and Feel not set");
+	          //  System.out.println("Look and Feel not set");
 	        }
 	        fp_frame.setLayout(null);
 	        fp_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -1144,9 +1263,9 @@ public class SwingDemo extends JFrame{
 	        	heading2.setText(t);
 	        	String fname=g.id+"attributes.txt";
 	        	File f1=new File(fname);
-	            System.out.println(f1.length());
+	         //   System.out.println(f1.length());
 	            if(f1.exists()) {
-	            	System.out.println("File Exists");
+	            	//System.out.println("File Exists");
 	            	try {
 	          		   FileReader f2=new FileReader(fname);
 	          		   int i=0;
@@ -1228,7 +1347,7 @@ public class SwingDemo extends JFrame{
 			        	heading2.setText(t);
 			        	String fname=g.id+"attributes.txt";
 			        	File f1=new File(fname);
-			            System.out.println("length="+f1.length());
+			           // System.out.println("length="+f1.length());
 			            if(f1.exists()) {
 			            	try {
 			          		   FileReader f2=new FileReader(fname);
@@ -1322,143 +1441,12 @@ public class SwingDemo extends JFrame{
 	  	  	label2.setBounds(300, 10, 500, 40);
 			panel2.setLayout(null);
 			
-			//Button to set NFR priority Values
-			
-			JLabel heading1=new JLabel("Set NFR Priority");
-	          heading1.setFont(new Font("Calibri", 2, 18));
-	          heading1.setBounds(30, 50, 200, 40);
-	         panel2.add(heading1);
-	          
-	          String []col2={"NFR","Priority"};
-	        	String [][]data2=null;
-	        	 DefaultTableModel model2 = new DefaultTableModel(data2,col2);  
-	        	NFR_priority=new JTable(model2){
-	        	    @Override
-	        	    public boolean isCellEditable(int row, int column) {                
-	        	        return (column==1);               
-	        	    };
-	        	};
-	        	NFR_priority.setFillsViewportHeight(true);
-	  		JScrollPane js2=new JScrollPane(NFR_priority);
-	  		  js2.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-	  		   //js2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-	  		  js2.setBounds(30, 150, 170, 220);
-	  		js2.setVisible(true);
-	  		//jp2.add(js2);
-	  		panel2.add(js2);
-	  		
-	          loadNFR.setFont(new Font("Calibri", 2, 16));
-	          loadNFR.setBackground(new Color(204, 204, 153));
-	          loadNFR.setForeground(Color.black);
-	          loadNFR.setBounds(30, 100, 100, 30);
-	          loadNFR.setToolTipText("Click to load NFRs");
-	          loadNFR.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-	        panel2.add(loadNFR);
-	          
-	           /* call a function to add items from a list if exists*/
-	         loadNFR.addActionListener(new ActionListener() {
-	                @Override
-	                 public void actionPerformed(final ActionEvent e) {
-	                	 try {
-	                     FileReader	f1=new FileReader("NFR.txt");
-	                     	int i;
-	                     	char c;
-	                     	String temp;
-	                     	String fe1,fe2,fe3;
-	                     	while((i=f1.read())!=-1) {
-	                     		
-	                     		c=(char)i;
-	                     		System.out.println("C="+c);
-	                     		temp="";
-	                     		if((i>=65 && i<=90) || (i>=97 && i<=122) ||(i>=48 && i<=57))
-	                     			temp=temp.concat(Character.toString(c));
-	                     		System.out.println("i="+i);
-	                     		while((i=f1.read())!=10 && i != 10 && i != 13 && i!=-1) {
-	                     			c=(char)i;
-	                     			if((i>=65 && i<=90) || (i>=97 && i<=122) ||(i>=48 && i<=57))
-	                     				temp=temp.concat(Character.toString(c));
-	                     			System.out.println("i="+i);
-	                     			while((i=f1.read())!=32) {
-	                     				c=(char)i;
-	                     				if((i>=65 && i<=90) || (i>=97 && i<=122) ||(i>=48 && i<=57))
-	                     					temp=temp.concat(Character.toString(c));
-	                     				System.out.println("i="+i);
-	                     			}
-	                     			fe1=temp;
-	                     			temp="";
-	                     			while((i=f1.read())!=32) {
-	                     				c=(char)i;
-	                     				if((i>=65 && i<=90) || (i>=97 && i<=122) ||(i>=48 && i<=57))
-	                     					temp=temp.concat(Character.toString(c));
-	                     				System.out.println("i="+i);
-	                     			}
-	                     			fe2=temp;
-	                     			System.out.println("Fetched is");
-	                     			System.out.println(fe1+" | "+fe2);
-	                     			DefaultTableModel model = (DefaultTableModel)NFR_priority.getModel();
-	                 				Object []o = new Object[2];
-	                 				o[0]=fe1;
-	                 				o[1]=fe2;
-	                 				model.addRow(o);
-	                     		}
-	                     	}
-	                     	f1.close();
-	                     	}
-	                 	
-	                     	catch(IOException i) {
-	                     		
-	                     	}
-	             	  Node p=NFR;
-	             	  if(p!=null) {
-	             		  while(p!=null) {
-	             			int num=NFR_priority.getRowCount();
-	             			int found=0;
-	             			for(int j=0;j<num;j++) {
-	             				String s=NFR_priority.getValueAt(j, 0).toString();
-	             				if((s.compareTo(p.id))==0)
-	             					found=1;
-	             			}
-	             			if(found==0) {
-	             			DefaultTableModel model = (DefaultTableModel)NFR_priority.getModel();
-	           				Object []o = new Object[2];
-	           				o[0]=p.id;
-	           				o[1]="";
-	           				model.addRow(o);
-	             			 
-	             		  }
-	             			else {
-	             				System.out.println("already exists"+p.id);
-	             			}
-	             			 p=p.next;
-	             		  }
-	             	  }
-	             	  else {
-	             		  JOptionPane.showMessageDialog(panel2,"No saved data"); 
-	             	  }
-	                 }
-	             });
-	         
-	        //Button to save NFR priority values
-			savePriority.setFont(new Font("Calibri", 2, 16));
-			savePriority.setBackground(new Color(204, 204, 153));
-			savePriority.setForeground(Color.black);
-			savePriority.setBounds(140, 100, 120, 30);
-			savePriority.setToolTipText("Click to save the NFR Priorities!");
-			savePriority.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-			panel2.add(savePriority);
-	       
-	        /* call a function to add items from a list if exists*/
-	        savePriority.addActionListener(new ActionListener() {
-	             @Override
-	              public void actionPerformed(final ActionEvent e) {
-	                setPriority();
-	              }
-	          });
-	        
+		
+
 	        // Button to set NFR parameters
 	        JLabel parametername;
 	        (parametername = new JLabel("Select a Parameter")).setFont(new Font("Calibri", 2, 18));
-	        parametername.setBounds(280, 50, 200, 40);
+	        parametername.setBounds(50, 50, 200, 40);
 	        panel2.add(parametername);
 	        final ButtonGroup buttonGroup = new ButtonGroup();
 	        buttonGroup.add(conflict);
@@ -1467,23 +1455,23 @@ public class SwingDemo extends JFrame{
 	        buttonGroup.add(both2);
 	        
 	        conflict.setFont(new Font("Calibri", 2, 16));
-	        conflict.setBounds(280, 100, 100, 40);
+	        conflict.setBounds(50, 100, 100, 40);
 	        panel2.add(conflict);
 	        
 	        priority.setFont(new Font("Calibri", 2, 16));
-	        priority.setBounds(280, 130, 130, 40);
+	        priority.setBounds(50, 130, 130, 40);
 	        panel2.add(priority);
 	        both.setFont(new Font("Calibri", 2, 16));
-	        both.setBounds(280, 160, 130, 40);
+	        both.setBounds(50, 160, 130, 40);
 	        both.setToolTipText("Product of NFR Conflict and NFR Priority");
 	        panel2.add(both);
 	        both2.setFont(new Font("Calibri", 2, 16));
-	        both2.setBounds(280, 190, 130, 40);
+	        both2.setBounds(50, 190, 130, 40);
 	        both2.setToolTipText("Weighted sum of NFR Conflict and NFR Priority");
 	       panel2.add(both2);
 	       JLabel weightlabel;
 	        (weightlabel = new JLabel("Specify weights:")).setFont(new Font("Calibri", 2, 14));
-	        weightlabel.setBounds(280, 240, 100, 40);
+	        weightlabel.setBounds(280, 50, 100, 40);
 	        panel2.add(weightlabel);
 	        slider1.setMajorTickSpacing(1);
 	        slider1.setMinorTickSpacing(1);
@@ -1501,20 +1489,20 @@ public class SwingDemo extends JFrame{
 	        JLabel l1=new JLabel("Conflict");
 	        JLabel l2=new JLabel("NFR Priority");
 	        l1.setFont(new Font("Calibri", 2, 13));
-	        l1.setBounds(280, 290, 80, 40);
+	        l1.setBounds(200, 100, 80, 40);
 	       panel2.add(l1);
 	        l2.setFont(new Font("Calibri", 2, 13));
-	        l2.setBounds(600, 290, 80, 40);
+	        l2.setBounds(520, 100, 80, 40);
 	        panel2.add(l2);
 	        slider1.setLabelTable(labels);
-	        slider1.setBounds(340, 290, 250, 50);
+	        slider1.setBounds(260, 100, 250, 50);
 	        panel2.add(slider1);
-	        submit.setFont(new Font("Calibri", 2, 16));
-	        submit.setBounds(280, 350, 100, 30);
-	        submit.setBackground(new Color(204, 204, 153));
-	        submit.setForeground(Color.black);
-	        submit.setToolTipText("Click to submit the parameter selected!");
-	        submit.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+	      submit.setToolTipText("Click to submit the parameter selected!");
+	      submit.setBackground(new Color(120, 168, 252));
+	      submit.setForeground(Color.black);
+	      submit.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+	      submit.setFont(new Font("Calibri", 2, 16));
+	        submit.setBounds(280, 180, 100, 30);
 	        panel2.add(submit);
 	        submit.addActionListener(new ActionListener() {
 	            @Override
@@ -1522,8 +1510,818 @@ public class SwingDemo extends JFrame{
 	                setChoice();
 	            }
 	        });
+	        
+	        //Button to set frozen FRs
+	        
+	        JLabel labelFrozen=new JLabel("Select FRs to be frozen");
+	        labelFrozen.setFont(new Font("Calibri", 2, 18));
+	        labelFrozen.setBounds(620, 50, 200, 40);
+	        panel2.add(labelFrozen);
+	        frofr.setBounds(620, 100, 100, 40);
+	        panel2.add(frofr);
+	        frofr.addItem("");
+	       // frofr.setEnabled(false);
+	        addFrozen.setBackground(new Color(120, 168, 252));
+	        addFrozen.setForeground(Color.black);
+	        addFrozen.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+	        addFrozen.setFont(new Font("Calibri", 2, 16));
+	        addFrozen.setBounds(590, 180, 80, 40);
+	        addFrozen.setToolTipText("Click to add Frozen Requirements");
+	        panel2.add(addFrozen);
+	        delFrozen.setBackground(new Color(120, 168, 252));
+	        delFrozen.setForeground(Color.black);
+	        delFrozen.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+	        delFrozen.setFont(new Font("Calibri", 2, 16));
+	        delFrozen.setBounds(680, 180, 80, 40);
+	        delFrozen.setToolTipText("Click to Delete Frozen Rqeuirements from the list");
+	        panel2.add(delFrozen);
+	       //addFrozen.setEnabled(true);
+	       //delFrozen.setEnabled(true);
+	       scrollPaneFR.setVerticalScrollBarPolicy(22);
+	       scrollPaneFR.setHorizontalScrollBarPolicy(32);
+	       scrollPaneFR.setBounds(770, 100, 130, 120);
+	       frozenFRs.setFont(new Font("Calibri", 2, 20));
+	       frozenFRs.setEditable(false);
+	      panel2.add(scrollPaneFR);
+	      
+	      frofr.removeAllItems();
+	      try {
+				//FR List Creation
+				frroot=null;
+				FileReader fread= new FileReader("FR.txt");
+				int readc=0;
+				char c;
+				String temp="";
+				while((readc=fread.read())!=-1) {
+	    				c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+	    				while((readc=fread.read())!=32) {
+	    					c=(char)readc;
+		    				temp=temp.concat(Character.toString(c));
+	    				}
+	    			while((readc=fread.read())!=10) {
+	    				if(readc==-1)
+	    					break;
+						
+					}
+	    			Node tempnode=new Node();
+	    			tempnode.id=temp;
+	    			tempnode.next=null;
+	    			if(frroot==null)
+	    				frroot=tempnode;
+	    			else {
+	    				Node k=frroot;
+	    				while(k.next!=null)
+	    					k=k.next;
+	    				k.next=tempnode;
+	    			}
+	    			temp="";
+	    		}
+				fread.close();
+	      }catch(IOException e) {
+	    	  System.out.println("File FR.txt not found!");
+	      }
+	   	 Node p=frroot;
+	   	 frofr.removeAllItems();
+	   	 frofr.addItem("");
+	   	   while(p!=null) {
+	   		   frofr.addItem(p.id);
+	   		   p=p.next;
+	   	   }
+	   	   
+	       addFrozen.addActionListener(new ActionListener() {
+	           @Override
+	           public void actionPerformed(final ActionEvent e) {
+	          
+	          	String s=frofr.getSelectedItem().toString(); 
+	          	if(s.compareTo("")!=0) {
+	          		System.out.println("s= "+s);
+	          	File f1=new File("Frozen.txt");
+	          	Fro=null;
+	          	int checkflag=0;
+	          	if(f1.exists()) {
+	          		System.out.println("File exists!");
+	          		try {
+	          			FileReader fread=new FileReader("Frozen.txt");
+	          			int i;
+	          			char c;
+	          			String temp="";
+	          			while((i=fread.read())!=-1) {
+	          				c=(char)i;
+	          				temp=temp.concat(Character.toString(c));
+	          				while((i=fread.read())!=10) {
+	          					if(i==-1)
+	          						break;
+	          					c=(char)i;
+	          					if((i>=97 && i<=122)|| (i>=49 && i<=57))
+	          						temp=temp.concat(Character.toString(c));
+	          				}
+	          				System.out.println("temp ="+temp);
+	          				System.out.println("Printed");
+	          				Node element=new Node();
+	          				element.id=temp;
+	          				element.next=null;
+	          				if(Fro==null)
+	          					Fro=element;
+	          				else
+	          				{
+	          					Node temproot=Fro;
+	          					while(temproot.next!=null)
+	          						temproot=temproot.next;
+	          					temproot.next=element;
+	          				}
+	          				if(temp.compareTo(s)==0)
+	          					checkflag=1;
+	          				temp="";
+	          			}
+	          			fread.close();
+	          	
+	    				if(checkflag==0) {
+	    					FileWriter fw1 = new FileWriter("Frozen.txt", false); 
+		    				BufferedWriter bw1 = new BufferedWriter(fw1);
+	    					Node element=new Node();
+	    					element.id=s;
+	    					element.next=null;
+		          			Node temproot=Fro;
+		          			while(temproot!=null) {
+		          				bw1.write(temproot.id);
+		          				bw1.newLine();
+		          				if(temproot.next==null) {
+		          					temproot.next=element;
+		          					break;
+		          				}
+		          				temproot=temproot.next;
+		          			}
+		          			bw1.write(s);
+		          			bw1.newLine();
+		          			bw1.close();
+		    				fw1.close();
+		    				temproot=Fro;
+		          			while(temproot!=null) {
+		          			System.out.println("In File" +temproot.id);
+		          			temproot=temproot.next;
+		          			}
+		          		}
+	    				else {
+	    					JOptionPane.showMessageDialog(panel2, "Item already exists!"); 
+	    				}
+	    				
+	          		}catch(IOException e2) {
+	          			System.out.println("Unable to open Frozen,txt");
+	          		}
+	          	}
+	          	else {
+	          		System.out.println("File does not exists!");
+	          		System.out.println("Element recording in the file!");
+	              	try {
+	              	FileWriter fw1 = new FileWriter("Frozen.txt", true); 
+    				BufferedWriter bw1 = new BufferedWriter(fw1);
+    				bw1.write(s);
+    			 	//System.out.println("Element recorded in the file!");
+    				bw1.newLine();
+    			 	//System.out.println("Element recorded in the file 2!");
+    				bw1.close();
+    				fw1.close();
+	              	}catch(IOException e3) {
+	              		System.out.println("Unable to open Frozen.txt");
+	              	}
+	              	System.out.println("Element recorded in the file!");
+	            	Node element=new Node();
+					element.id=s;
+					element.next=null;
+					if(Fro==null)
+						Fro=element;
+					//frozenFRs.setText("");
+					
+	          	}
+	          	frofr.setSelectedItem("");
+	          	System.out.println("Hello I am out");
+	          	frozenFRs.setText("");
+				Node temproot=Fro;
+				while(temproot!=null) {
+					frozenFRs.append(temproot.id);
+	              	frozenFRs.append("\n");
+	              	temproot=temproot.next;
+				}
+				frofr.setSelectedItem("");
+	          	}
+	          	else {
+	          		//Do Nothing
+	          		frofr.setSelectedItem("");
+	          	}
+	           }
+	       });
+	       generate.setBackground(new Color(120, 168, 252));
+	       generate.setForeground(Color.black);
+	       generate.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+	       generate.setFont(new Font("Calibri", 2, 14));
+	       generate.setBounds(50, 280, 130, 40);
+	       generate.setToolTipText("Click to generate partial order");
+	       panel2.add(generate);
+	       
+	        scrollpane1.setVerticalScrollBarPolicy(22);
+	        scrollpane1.setHorizontalScrollBarPolicy(32);
+	        scrollpane1.setBounds(50, 350, 240, 350);
+	        textOrder1.setFont(new Font("Calibri", 2, 20));
+	        textOrder1.setEditable(false);
+	        panel2.add(scrollpane1);
+	        
+	        generate.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(final ActionEvent e) {
+	            	if (choice == 0) {
+	                    JOptionPane.showMessageDialog(panel2, "Select a parameter");
+	                }
+	            	else {
+	            		//Create FR and NFR list
+	            		try {
+	            		frroot=null;
+	        			FileReader fread= new FileReader("FR.txt");
+	        			int readc=0;
+	        			char c;
+	        			String temp="";
+	        			while((readc=fread.read())!=-1) {
+	            				c=(char)readc;
+	            				temp=temp.concat(Character.toString(c));
+	            				while((readc=fread.read())!=32) {
+	            					c=(char)readc;
+	            					if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	            						temp=temp.concat(Character.toString(c));
+	            				}
+	            			while((readc=fread.read())!=10) {
+	            				if(readc==-1)
+	            					break;
+	        					
+	        				}
+	            			Node tempnode=new Node();
+	            			tempnode.id=temp;
+	            			tempnode.next=null;
+	            			if(frroot==null)
+	            				frroot=tempnode;
+	            			else {
+	            				Node k=frroot;
+	            				while(k.next!=null)
+	            					k=k.next;
+	            				k.next=tempnode;
+	            			}
+	            			temp="";
+	            		}
+	        			fread.close();
+	        			//NFR List Creation
+	        			nfrroot=null;
+	        			fread= new FileReader("NFR.txt");
+	        			readc=0;
+	        			temp="";
+	        			while((readc=fread.read())!=-1) {
+	        				Node tempnode=new Node();
+	            				c=(char)readc;
+	            				temp=temp.concat(Character.toString(c));
+	            				while((readc=fread.read())!=32) {
+	            					c=(char)readc;
+	            					if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	            						temp=temp.concat(Character.toString(c));
+	            				}
+	            				tempnode.id=temp;
+	            				temp="";
+	            			while((readc=fread.read())!=32) {
+	        				}
+	            			while((readc=fread.read())!=10) {
+	            				if(readc>=48 && readc<=57) {
+	        						c=(char)readc;
+	        						if(readc>=48 && readc<=57)
+	        							temp=temp.concat(Character.toString(c));
+	            				}
+	        				}
+	            			tempnode.priority=Integer.valueOf(temp);
+	            			tempnode.next=null;
+	            			if(nfrroot==null)
+	            				nfrroot=tempnode;
+	            			else {
+	            				Node k=nfrroot;
+	            				while(k.next!=null)
+	            					k=k.next;
+	            				k.next=tempnode;
+	            			}
+	            			temp="";
+	            		}
+	        			fread.close();
+	        			frfrroot=null;
+	        			fread= new FileReader("FRFR.txt");
+	        			readc=0;
+	        			temp="";
+	        			while((readc=fread.read())!=-1) {
+	        				Edge1 tempnode=new Edge1();
+	        					c=(char)readc;
+	        					cn++;
+	        					temp=temp.concat(Character.toString(c));
+	        					while((readc=fread.read())!=32) {
+	        						c=(char)readc;
+	        						if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	        							temp=temp.concat(Character.toString(c));
+	        					}
+	        					tempnode.id1=temp;
+	        					temp="";
+	        					while((readc=fread.read())!=32) {
+	        						c=(char)readc;
+	        						if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	        							temp=temp.concat(Character.toString(c));
+	        					}
+	        					tempnode.id2=temp;
+	        					temp="";
+	        					while((readc=fread.read())!=32) {
+	        						c=(char)readc;
+	        	    				temp=temp.concat(Character.toString(c));
+	        					}
+	        					tempnode.type=temp;
+	        					temp="";
+	        					while((readc=fread.read())!=10) {
+	        						if(readc>=48 && readc<=57) {
+	        						c=(char)readc;
+	        	    				temp=temp.concat(Character.toString(c));
+	        						}
+	        					}
+	        					int kval=Integer.valueOf(temp);
+	        					tempnode.value=kval;
+	        					tempnode.next=null;
+	        	    			if(frfrroot==null)
+	        	    				frfrroot=tempnode;
+	        	    			else {
+	        	    				Edge1 k=frfrroot;
+	        	    				while(k.next!=null)
+	        	    					k=k.next;
+	        	    				k.next=tempnode;
+	        	    			}
+	        	   
+	        	    			temp="";
+	        				}
+	        			fread.close();
+	        			//FRNFR List Creation
+	        			frnfrroot=null;
+	        			fread= new FileReader("FRNFR.txt");
+	        			readc=0;
+	        			temp="";
+	        			while((readc=fread.read())!=-1) {
+	        				Edge1 tempnode=new Edge1();
+	        					c=(char)readc;
+	        					temp=temp.concat(Character.toString(c));
+	        					while((readc=fread.read())!=32) {
+	        						c=(char)readc;
+	        						if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	        							temp=temp.concat(Character.toString(c));
+	        					}
+	        					tempnode.id1=temp;
+	        					temp="";
+	        					while((readc=fread.read())!=32) {
+	        						c=(char)readc;
+	        						if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	        							temp=temp.concat(Character.toString(c));
+	        					}
+	        					tempnode.id2=temp;
+	        					temp="";
+	        					while((readc=fread.read())!=10) {
+	        						if(readc==45) {
+	        							c=(char)readc;
+	        		    				temp=temp.concat(Character.toString(c));
+	        						}
+	        						if(readc>=48 && readc<=57) {
+	        						c=(char)readc;
+	        	    				temp=temp.concat(Character.toString(c));
+	        						}
+	        					}
+	        					int kval=Integer.valueOf(temp);
+	        					tempnode.value=kval;
+	        					tempnode.next=null;
+	        	    			if(frnfrroot==null)
+	        	    				frnfrroot=tempnode;
+	        	    			else {
+	        	    				Edge1 k=frnfrroot;
+	        	    				while(k.next!=null)
+	        	    					k=k.next;
+	        	    				k.next=tempnode;
+	        	    			}
+	        	   
+	        	    			temp="";
+	        				}
+	        			fread.close();
+	        		//NFRNFR List Creation
+	        			nfrnfrroot=null;
+	        			fread= new FileReader("NFRNFR.txt");
+	        			readc=0;
+	        			temp="";
+	        			while((readc=fread.read())!=-1) {
+	        				Edge1 tempnode=new Edge1();
+	        					c=(char)readc;
+	        					temp=temp.concat(Character.toString(c));
+	        					while((readc=fread.read())!=32) {
+	        						c=(char)readc;
+	        						if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	        							temp=temp.concat(Character.toString(c));
+	        					}
+	        					tempnode.id1=temp;
+	        					temp="";
+	        					while((readc=fread.read())!=32) {
+	        						c=(char)readc;
+	        						if((readc>=97 && readc<=122)|| (readc>=49 && readc<=57))
+	        							temp=temp.concat(Character.toString(c));
+	        					}
+	        					tempnode.id2=temp;
+	        					temp="";
+	        					while((readc=fread.read())!=10) {
+	        						if(readc>=48 && readc<=57) {
+	        						c=(char)readc;
+	        	    				temp=temp.concat(Character.toString(c));
+	        						}
+	        					}
+	        					int kval=Integer.valueOf(temp);
+	        					tempnode.value=kval;
+	        					tempnode.next=null;
+	        	    			if(nfrnfrroot==null)
+	        	    				nfrnfrroot=tempnode;
+	        	    			else {
+	        	    				Edge1 k=nfrnfrroot;
+	        	    				while(k.next!=null)
+	        	    					k=k.next;
+	        	    				k.next=tempnode;
+	        	    			}
+	        	   
+	        	    			temp="";
+	        				}
+	        			fread.close();
+	        			
+	            	}catch(IOException e4) {
+	            		System.out.println("File error!");
+	            	}
+	            		//Create Clusters
+	        			create_BasicClusters();
+	                  	display_BasicClusters();
+	                  	create_MacroClusters();
+	                  	 display_MacroClusters();
+	                  	 create_requirementSet();
+	                  	 wn=null;wd=null;
+	                   //  generate_PartialOrderNew();
+	                     //remove_transitive();
+	                     //exist_path();
+	                     //display_PartialOrder();
+	                     //setText();
+	                
+	                    //setOrderInFrame();
+	                    //show_matrix();
+	            	}
+	            	
+	            }
+	        });
 	 }
-
+	 public static void create_BasicClusters() {
+		 
+	        Node nfr = nfrroot;
+	        bcHead = null;
+	        while (nfr != null) {
+	        	//System.out.println("Creating BC for NFR "+nfr.id);
+	            final BC temp = new BC();
+	            temp.Nid = nfr.id;
+	            Edge1 fn = frnfrroot;
+	            FRDep flist = null;
+	            while (fn != null) {
+	                if (fn.id2.compareTo(nfr.id) == 0) {
+	                	System.out.println("Found NFR "+fn.id2);
+	                    final FRDep fnode = new FRDep();
+	                    fnode.id = fn.id1;
+	                    fnode.val = fn.value;
+	                    fnode.next = null;
+	                    if (flist == null) {
+	                        flist = fnode;
+	                    }
+	                    else {
+	                        FRDep p;
+	                        for (p = flist; p.next != null; p = p.next) {}
+	                        p.next = fnode;
+	                    }
+	                }
+	                fn = fn.next;
+	            }
+	            if (flist != null) {
+	                temp.begin = flist;
+	            }
+	            temp.next = null;
+	            if (bcHead == null) {
+	                bcHead = temp;
+	            }
+	            else {
+	                BC q;
+	                for (q = bcHead; q.next != null; q = q.next) {}
+	                q.next = temp;
+	            }
+	            nfr = nfr.next;
+	        }
+	    }
+	 public static void display_BasicClusters() {
+	        BC p = bcHead;
+	        //System.out.println();
+	        System.out.println("The basic clusters are:");
+	        //System.out.println();
+	        while (p != null) {
+	            System.out.println("NFR: " + p.Nid);
+	            for (FRDep q = p.begin; q != null; q = q.next) {
+	                System.out.println("FR: " + q.id);
+	                System.out.println("Dependency Edge Weight: " + q.val);
+	            }
+	            System.out.println();
+	            p = p.next;
+	        }
+	    }
+	 public static void create_MacroClusters() {
+	        Edge1 Nconflict = nfrnfrroot;
+	        mcHead = null;
+	        while (Nconflict != null) {
+	            BC p = bcHead;
+	            final MC temp = new MC();
+	            temp.next = null;
+	            temp.Blist = null;
+	            temp.CEdge = 1;
+	            while (p != null) {
+	                if (p.Nid.compareTo(Nconflict.id1) == 0 || p.Nid.compareTo(Nconflict.id2) == 0) {
+	                    final BC newBC = new BC();
+	                    newBC.Nid = p.Nid;
+	                    newBC.begin = p.begin;
+	                    newBC.next = null;
+	                    if (temp.Blist == null) {
+	                        temp.Blist = newBC;
+	                    }
+	                    else {
+	                        BC q;
+	                        for (q = temp.Blist; q.next != null; q = q.next) {}
+	                        q.next = newBC;
+	                    }
+	                }
+	                p = p.next;
+	            }
+	            if (mcHead == null) {
+	                mcHead = temp;
+	            }
+	            else {
+	                MC r;
+	                for (r = mcHead; r.next != null; r = r.next) {}
+	                r.next = temp;
+	            }
+	            Nconflict = Nconflict.next;
+	        }
+	      
+	    }
+	    
+	    public static void display_MacroClusters() {
+	        MC p = mcHead;
+	        //System.out.println();
+	        //System.out.println("The macro clusters are:");
+	        //System.out.println();
+	        while (p != null) {
+	            System.out.println("A macro cluster");
+	            for (BC q = p.Blist; q != null; q = q.next) {
+	                System.out.println("NFR: " + q.Nid);
+	                for (FRDep r = q.begin; r != null; r = r.next) {
+	                    System.out.println("FR: " + r.id);
+	                    System.out.println("Dependency Edge Weight: " + r.val);
+	                }
+	                System.out.println();
+	            }
+	            p = p.next;
+	        }
+	    }
+	    public static void create_requirementSet() {
+	        root = null;
+	        for (Node p = frroot; p.next != null; p = p.next) {
+	            for (Node q = p.next; q != null; q = q.next) {
+	                final Rpair temp = new Rpair();
+	                temp.id1 = p.id;
+	                temp.id2 = q.id;
+	                temp.done = 0;
+	                temp.next = null;
+	                if (root == null) {
+	                    root = temp;
+	                }
+	                else {
+	                    Rpair s;
+	                    for (s = root; s.next != null; s = s.next) {}
+	                    s.next = temp;
+	                }
+	            }
+	        }
+	    }
+	    
+	    public static void display_requirementSet() {
+	        Rpair p = root;
+	        int count = 0;
+	        //System.out.println("The requirements pair are: ");
+	        while (p != null) {
+	            //System.out.println(String.valueOf(p.id1) + " " + p.id2);
+	            p = p.next;
+	            ++count;
+	        }
+	        //System.out.println("The count is : " + count);
+	    }
+	    /*public static void generate_PartialOrderNew() {
+	    	Node j=FR;
+	    	int co=0;
+	    	while(j!=null)
+	    	{
+	    		co++;
+	    		j=j.next;
+	    	}
+	    	conflict_weight=new double[co][co];
+	    	dep_weight=new double[co][co];
+	        proot = null;
+	        for (Rpair point = root; point != null; point = point.next) {
+	            Edge2 p = E_FF;
+	            int tflag = 0;
+	            while (p != null) {
+	                if ((p.id1.compareTo(point.id1) == 0 && p.id2.compareTo(point.id2) == 0) || (p.id1.compareTo(point.id2) == 0 && p.id2.compareTo(point.id1) == 0)) {
+	                    tflag = 1;
+	                    break;
+	                }
+	                p = p.next;
+	            }
+	            if (tflag == 1) {
+	                //System.out.println("Temporal Edge found for : " + point.id1 + " " + point.id2);
+	                point.done = 1;
+	                final PO temp = new PO();
+	                temp.id1 = p.id1;
+	                temp.id2 = p.id2;
+	                temp.next = null;
+	                if (proot == null) {
+	                    proot = temp;
+	                }
+	                else {
+	                    PO r;
+	                    for (r = proot; r.next != null; r = r.next) {}
+	                    r.next = temp;
+	                }
+	            }
+	        }
+	        for (Rpair point = root; point != null; point = point.next) {
+	            String fr1 = point.id1;
+	            String fr2 = point.id2;
+	            //System.out.println("Checking for " + fr1 + " " + fr2);
+	            if (point.done == 0) {
+	                fr1 = point.id1;
+	                fr2 = point.id2;
+	                //System.out.println("Checking for " + fr1 + " " + fr2);
+	                int flagmc1 = 0;
+	                int flagmc2 = 0;
+	                int flagmc3 = 0;
+	                for (MC p2 = mcHead; p2 != null; p2 = p2.next) {
+	                    flagmc1 = 0;
+	                    flagmc2 = 0;
+	                    for (BC q = p2.Blist; q != null; q = q.next) {
+	                        for (FRDep r2 = q.begin; r2 != null; r2 = r2.next) {
+	                            if (r2.id.compareTo(fr1) == 0) {
+	                                flagmc1 = 1;
+	                            }
+	                            if (r2.id.compareTo(fr2) == 0) {
+	                                flagmc2 = 1;
+	                            }
+	                        }
+	                    }
+	                    if (flagmc1 == 1 && flagmc2 == 1) {
+	                        flagmc3 = 1;
+	                        break;
+	                    }
+	                }
+	                if (flagmc3 == 1) {
+	                    point.done = 1;
+	                    //System.out.println("Belong to same macro cluster " + fr1 + " " + fr2);
+	                    if (choice == 1) {
+	                        case1(fr1, fr2);
+	                    }
+	                    else if (choice == 2) {
+	                        case2(fr1, fr2);
+	                    }
+	                    else if (choice == 3) {
+	                        case3(fr1, fr2);
+	                    }
+	                    else if (choice == 4) {
+	                        case4(fr1, fr2);
+	                    }
+	                }
+	                else {
+	                    int rflag1 = 0;
+	                    int rflag2 = 0;
+	                    LNFR1 = null;
+	                    LNFR2 = null;
+	                    for (BC bcluster = bcHead; bcluster != null; bcluster = bcluster.next) {
+	                        FRDep s = bcluster.begin;
+	                        while (s != null) {
+	                            if (s.id.compareTo(point.id1) == 0) {
+	                                rflag1 = 1;
+	                                final Node temp2 = new Node();
+	                                temp2.id = bcluster.Nid;
+	                                temp2.next = null;
+	                                if (LNFR1 == null) {
+	                                    LNFR1 = temp2;
+	                                    break;
+	                                }
+	                                Node q2;
+	                                for (q2 = LNFR1; q2.next != null; q2 = q2.next) {}
+	                                q2.next = temp2;
+	                                break;
+	                            }
+	                            else {
+	                                s = s.next;
+	                            }
+	                        }
+	                    }
+	                    for (BC bcluster = bcHead; bcluster != null; bcluster = bcluster.next) {
+	                        FRDep s = bcluster.begin;
+	                        while (s != null) {
+	                            if (s.id.compareTo(point.id2) == 0) {
+	                                rflag2 = 1;
+	                                final Node temp2 = new Node();
+	                                temp2.id = bcluster.Nid;
+	                                temp2.next = null;
+	                                if (LNFR2 == null) {
+	                                    LNFR2 = temp2;
+	                                    break;
+	                                }
+	                                Node q2;
+	                                for (q2 = LNFR2; q2.next != null; q2 = q2.next) {}
+	                                q2.next = temp2;
+	                                break;
+	                            }
+	                            else {
+	                                s = s.next;
+	                            }
+	                        }
+	                    }
+	                    int count = 0;
+	                    int noteq = 0;
+	                    if (rflag1 == 1 && rflag2 == 1) {
+	                        Node l1 = LNFR1;
+	                        int check = 0;
+	                        while (l1 != null) {
+	                            Node l2 = LNFR2;
+	                            check = 0;
+	                            while (l2 != null) {
+	                                if (l1.id.compareTo(l2.id) == 0) {
+	                                    check = 1;
+	                                    ++count;
+	                                    break;
+	                                }
+	                                l2 = l2.next;
+	                            }
+	                            l1 = l1.next;
+	                            if (check == 0) {
+	                                noteq = 1;
+	                            }
+	                        }
+	                        l1 = LNFR2;
+	                        check = 0;
+	                        while (l1 != null) {
+	                            Node l2 = LNFR1;
+	                            check = 0;
+	                            while (l2 != null) {
+	                                if (l1.id.compareTo(l2.id) == 0) {
+	                                    check = 1;
+	                                    ++count;
+	                                    break;
+	                                }
+	                                l2 = l2.next;
+	                            }
+	                            l1 = l1.next;
+	                            if (check == 0) {
+	                                noteq = 1;
+	                            }
+	                        }
+	                    }
+	                    if (count > 0) {
+	                        point.done = 1;
+	                        caseB(fr1, fr2);
+	                    }
+	                }
+	            }
+	            for (PO u = proot; u != null; u = u.next) {
+	                if (u.next == null) {
+	                    //System.out.println("added edge is : " + u.id1 + "->" + u.id2);
+	                    break;
+	                }
+	            }
+	            final int f = check_cycle();
+	            if (f == 1) {
+	                //System.out.println("Loop is formed");
+	                PO p3 = proot;
+	                PO q3 = p3.next;
+	                if (q3 != null) {
+	                    while (q3.next != null) {
+	                        p3 = p3.next;
+	                        q3 = p3.next;
+	                    }
+	                    p3.next = null;
+	                }
+	            }
+	            for (PO v = proot; v != null; v = v.next) {
+	                v.visited = 0;
+	            }
+	            
+	        }
+	     //   display_matrix(co);
+	    }*/
 	//Saving the NFR priorities provided
 	    public static void setPriority() {
 	        int flag = 0;
@@ -1543,7 +2341,7 @@ public class SwingDemo extends JFrame{
 	            	String s1=NFR_priority.getValueAt(i, 0).toString();
 	            	String s2=NFR_priority.getValueAt(i, 1).toString();
 	            	int val=Integer.valueOf(s2);
-	            	System.out.println("The value is "+s2+" | "+val);
+	            	//System.out.println("The value is "+s2+" | "+val);
 	            	Node k=NFR;
 	            	while(k!=null) {
 	            		if((k.id.compareTo(s1))==0)
@@ -1556,31 +2354,49 @@ public class SwingDemo extends JFrame{
 	            	i++;
 	            }
 	        }
-	        System.out.println("The priority values are");
+	        //System.out.println("The priority values are");
 	        Node h=NFR;
 	        while(h!=null) {
-	        	System.out.println(h.id+" | "+h.priority);
+	        	//System.out.println(h.id+" | "+h.priority);
 	        	h=h.next;
 	        }
 	    }
 	    public static void setChoice() {
+	    	try {
+	    	FileWriter fw1 = new FileWriter("Parameter.txt", false); 
+			BufferedWriter bw1 = new BufferedWriter(fw1);
 	        if (conflict.isSelected()) {
 	            choice = 1;
+	            bw1.write("1");
+	            bw1.newLine();
 	        }
 	        else if (priority.isSelected()) {
 	            choice = 2;
+	            bw1.write("2");
+	            bw1.newLine();
 	        }
 	        else if (both.isSelected()) {
 	            choice = 3;
+	            bw1.write("3");
+	            bw1.newLine();
 	        }
 	        else if (both2.isSelected()) {
 	            w1 = slider1.getValue() / 10.0;
 	            w2 = 1.0 - w1;
+	            String ws1=String.valueOf(w1);
+	            String ws2=String.valueOf(w2);
 	            choice = 4;
+	            bw1.write("4"+" "+ws1+" "+ws2);
+	            bw1.newLine();
 	        }
 	        else {
 	            JOptionPane.showMessageDialog(panel2, "Select a parameter");
 	        }
+	        bw1.close();
+	        fw1.close();
+	    	}catch(IOException p) {
+	    		System.out.println("File Handling Error for parameter.txt!");
+	    	}
 	    }
 	    
 	public static void construct_panel3() {
@@ -1613,7 +2429,7 @@ public class SwingDemo extends JFrame{
 	  		     componentbox.setBounds(180, 200, 100, 40);
 	  		     panel7.add(componentbox);
 	  		   	componentbox.setEditable(true);
-	   JLabel NFRImpactlabel= new JLabel("NFR Impacted");
+	   JLabel NFRImpactlabel= new JLabel("FR/NFR Impacted");
 	  			NFRImpactlabel.setBounds(50,270,200, 60);
 	  			panel7.add(NFRImpactlabel);
 	  			
@@ -1659,7 +2475,7 @@ public class SwingDemo extends JFrame{
 			     		}
 			 			fread1.close();
 			    	 }catch(Exception e4) {
-			    		 System.out.println("File error");
+			    		// System.out.println("File error");
 			    	 }
 			     }
 			     else if(categoryselected.compareTo("NFR")==0) {
@@ -1703,15 +2519,15 @@ public class SwingDemo extends JFrame{
        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
      //  panel7.add(changedestext);
        panel7.add(sp);
-       loadnfr.setBounds(830, 200, 100, 40);
+       loadnfr.setBounds(810, 200, 120, 40);
  	  loadnfr.setFont(new Font("Calibri", 2, 16));
        loadnfr.setBackground(new Color(120, 168, 252));
        loadnfr.setForeground(Color.black);
-       loadnfr.setToolTipText("Click to load NFRs");
+       loadnfr.setToolTipText("Click to load FRs/NFRs");
        loadnfr.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
        panel7.add(loadnfr);
 	  JButton risk1= new JButton("Risk Assessment");
-	  risk1.setBounds(50, 480, 200, 40);
+	  risk1.setBounds(650, 380, 200, 40);
 	  risk1.setFont(new Font("Calibri", 2, 16));
       risk1.setBackground(new Color(120, 168, 252));
       risk1.setForeground(Color.black);
@@ -1725,11 +2541,35 @@ public class SwingDemo extends JFrame{
 	        	size2=0;
 	        	cn=0;
 	        	size3=0;
+	        	riskexpose.setText("");
+	        	create_list();
 	        	compute_satisfaction();
-	        	change_propagation();
-	        	//create_riskgraph();
+	        	compute_conflict();
+	        	change_propagation(); // Derives FR-FR propagation chain
+	        	
+	        	calculate_nodeimpact();
+	        	calculate_risk();
+	        	create_riskgraph();
 	        }
       });
+      JLabel j1= new JLabel("Risk Exposure");
+      j1.setBounds(50,350 ,100 ,20 );
+      panel7.add(j1);
+      JScrollPane sp2 = new JScrollPane(riskexpose);       
+      sp2.setBounds(50,380, 550,130);
+      sp2.setBackground(new Color(204, 204, 204));
+       sp2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+       panel7.add(sp2);
+       riskexpose.setEditable(false);
+       JLabel j2= new JLabel("Risk Measure");
+       j2.setBounds(50,520 ,100 ,20 );
+       panel7.add(j2);
+       JScrollPane sp3 = new JScrollPane(riskmeasure);       
+       sp3.setBounds(50,550, 550,130);
+       sp3.setBackground(new Color(204, 204, 204));
+        sp3.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        panel7.add(sp3);
+       riskmeasure.setEditable(false);
       set.setBounds(520, 270, 100, 40);
 	  set.setFont(new Font("Calibri", 2, 16));
       set.setBackground(new Color(120, 168, 252));
@@ -1740,6 +2580,8 @@ public class SwingDemo extends JFrame{
       loadnfr.addActionListener(new ActionListener() {
 	    	 public void actionPerformed(ActionEvent e){
 	    		 String componentselected=componentbox.getSelectedItem().toString();
+	    		 String categoryselected=categorybox.getSelectedItem().toString();
+	    		 if(categoryselected.compareTo("FR")==0) {
 			     nfrimpactbox.removeAllItems();
 			     nfrimpactbox.addItem("");
 			     if(componentselected.compareTo("")!=0) {
@@ -1787,17 +2629,17 @@ public class SwingDemo extends JFrame{
 		     			if(frnfrlisttemp==null)
 		     				frnfrlisttemp=newnode;
 		     			else {
-		     				System.out.println("Inserted");
+		     				//System.out.println("Inserted");
 		     				Edge1 k=frnfrlisttemp;
 		     				while(k.next!=null) {
 		     					k=k.next;
 		     				}
 		     				k.next=newnode;
 		     			}
-		     			System.out.println("List created");
+		     			//System.out.println("List created");
 		     		      Edge1 t=frnfrlisttemp;
 		     		      while(t!=null) {
-		     		    	  System.out.println("Here"+t.id1+" "+t.id2+" "+t.value);
+		     		    	//  System.out.println("Here"+t.id1+" "+t.id2+" "+t.value);
 		     		    	  t=t.next;
 		     		      }
 		     			temp1="";
@@ -1808,15 +2650,85 @@ public class SwingDemo extends JFrame{
 			     }
 	    	 }
 	    	 }
+	    		 else {
+	    		     nfrimpactbox.removeAllItems();
+				     nfrimpactbox.addItem("");
+				     if(componentselected.compareTo("")!=0) {
+				    	 
+				     try {
+				    	FileReader fread=new FileReader("FRNFR.txt");
+				    	int readc=0;
+			 			char c;
+			 			String temp1="";
+			 			String temp2="";
+			 			String temp3="";
+			 			while((readc=fread.read())!=-1) {
+			     				c=(char)readc;
+			     				temp1=temp1.concat(Character.toString(c));
+			     				while((readc=fread.read())!=32) {
+			     					c=(char)readc;
+			 	    				temp1=temp1.concat(Character.toString(c));
+			     				}
+			     				temp2="";
+			     				while((readc=fread.read())!=32) {
+			     					c=(char)readc;
+			 	    				temp2=temp2.concat(Character.toString(c));
+			     				}
+			     				temp3="";
+			     			while((readc=fread.read())!=10) {
+			     					if(readc==45) {
+			     						c=(char)readc;
+				        				temp3=temp3.concat(Character.toString(c));
+			     					}
+			     					else if(readc>=48 && readc<=57) {
+			    					c=(char)readc;
+			        				temp3=temp3.concat(Character.toString(c));
+			    					}
+			    				
+			     				if(readc==-1)
+			     					break;
+			     			}
+			     			if(temp2.compareTo(componentselected)==0)
+			     				nfrimpactbox.addItem(temp1);
+			     			Edge1 newnode=new Edge1();
+			     			newnode.id1=temp1;
+			     			newnode.id2=temp2;
+			     			newnode.value=Integer.valueOf(temp3);
+			     			newnode.next=null;
+			     			if(frnfrlisttemp==null)
+			     				frnfrlisttemp=newnode;
+			     			else {
+			     				//System.out.println("Inserted");
+			     				Edge1 k=frnfrlisttemp;
+			     				while(k.next!=null) {
+			     					k=k.next;
+			     				}
+			     				k.next=newnode;
+			     			}
+			     			//System.out.println("List created");
+			     		      Edge1 t=frnfrlisttemp;
+			     		      while(t!=null) {
+			     		    	//  System.out.println("Here"+t.id1+" "+t.id2+" "+t.value);
+			     		    	  t=t.next;
+			     		      }
+			     			temp1="";
+			     		}
+			 			fread.close();
+				     }catch(IOException e5) {
+				    	 
+				     }
+		    	 }
+	    		 }
+	    	}
       });
       
       set.addActionListener(new ActionListener() {
 	    	 public void actionPerformed(ActionEvent e){
 	      		 String componentselected=componentbox.getSelectedItem().toString();
-	      		 String nfrselected=nfrimpactbox.getSelectedItem().toString();
+	      		 String frnfrselected=nfrimpactbox.getSelectedItem().toString();
 	      		 String cval=nfrimpactvalue.getText();
 	      		 int cval2=Integer.valueOf(cval);
-	      		 if(cval2>=-100 || cval2<=100)
+	      		 if(cval2<-100 || cval2>100)
 	      		 {
 	      			 JOptionPane.showMessageDialog(panel7, "Impact value outside valid range");
 	      		 }
@@ -1826,12 +2738,14 @@ public class SwingDemo extends JFrame{
     				BufferedWriter bw1 = new BufferedWriter(fw1);
 	      			 Edge1 ktemp=frnfrlisttemp;
 	      			 while(ktemp!=null) {
-	      				 if(ktemp.id1.compareTo(componentselected)==0 && ktemp.id2.compareTo(nfrselected)==0)
+	      				 if(ktemp.id1.compareTo(componentselected)==0 && ktemp.id2.compareTo(frnfrselected)==0)
 	      					 ktemp.value=cval2;
+	      				 else if(ktemp.id2.compareTo(componentselected)==0 && ktemp.id1.compareTo(frnfrselected)==0)
+	      					ktemp.value=cval2;
 	      				 ktemp=ktemp.next;
 	      			 }
 	      			 ktemp=frnfrlisttemp;
-	      			 System.out.println("Writing");
+	      			// System.out.println("Writing");
 	      			 while(ktemp!=null) {
 	      				
 	      				 bw1.write(ktemp.id1+" "+ktemp.id2+" "+ktemp.value);
@@ -1847,191 +2761,227 @@ public class SwingDemo extends JFrame{
 	    	 }
       });	
 	}
-	public static void change_propagation() {
-		String compselect=componentbox.getSelectedItem().toString();
-		Edge1 frfr=null;
-		Edge1 frnfr=null;
-		Edge1 nfrnfr=null;
-		int countfrnfr=0;
+	public static void create_list() {
+		//FR List
 		try {
-		FileReader fread3= new FileReader("FRFR.txt");
-		int readc=0;
-		String temp="";
-		char c;
-		while((readc=fread3.read())!=-1) {
-			Edge1 tempnode=new Edge1();
-				c=(char)readc;
-				cn++;
-				temp=temp.concat(Character.toString(c));
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
+			//FR List Creation
+			frroot=null;
+			FileReader fread= new FileReader("FR.txt");
+			int readc=0;
+			char c;
+			String temp="";
+			while((readc=fread.read())!=-1) {
+    				c=(char)readc;
     				temp=temp.concat(Character.toString(c));
+    				while((readc=fread.read())!=32) {
+    					c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+    				}
+    			while((readc=fread.read())!=10) {
+    				if(readc==-1)
+    					break;
+					
 				}
-				tempnode.id1=temp;
-				temp="";
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-				}
-				tempnode.id2=temp;
-				temp="";
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-				}
-				tempnode.type=temp;
-				temp="";
-				while((readc=fread3.read())!=10) {
-					if(readc>=48 && readc<=57) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-					}
-				}
-				int kval=Integer.valueOf(temp);
-				tempnode.value=kval;
-				tempnode.next=null;
-    			if(frfr==null)
-    				frfr=tempnode;
+    			Node tempnode=new Node();
+    			tempnode.id=temp;
+    			tempnode.next=null;
+    			if(frroot==null)
+    				frroot=tempnode;
     			else {
-    				Edge1 k=frfr;
+    				Node k=frroot;
     				while(k.next!=null)
     					k=k.next;
     				k.next=tempnode;
     			}
-   
     			temp="";
-			}
-		fread3= new FileReader("FRNFR.txt");
-		readc=0;
-		temp="";
-		while((readc=fread3.read())!=-1) {
-			Edge1 tempnode=new Edge1();
-				c=(char)readc;
-				temp=temp.concat(Character.toString(c));
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
+    		}
+			fread.close();
+			//NFR List Creation
+			nfrroot=null;
+			fread= new FileReader("NFR.txt");
+			readc=0;
+			temp="";
+			while((readc=fread.read())!=-1) {
+				Node tempnode=new Node();
+    				c=(char)readc;
     				temp=temp.concat(Character.toString(c));
+    				while((readc=fread.read())!=32) {
+    					c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+    				}
+    				tempnode.id=temp;
+    				temp="";
+    			while((readc=fread.read())!=32) {
 				}
-				tempnode.id1=temp;
-				temp="";
-				while((readc=fread3.read())!=32) {
+    			while((readc=fread.read())!=10) {
+    				if(readc>=48 && readc<=57) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+    				}
+				}
+    			tempnode.priority=Integer.valueOf(temp);
+    			tempnode.next=null;
+    			if(nfrroot==null)
+    				nfrroot=tempnode;
+    			else {
+    				Node k=nfrroot;
+    				while(k.next!=null)
+    					k=k.next;
+    				k.next=tempnode;
+    			}
+    			temp="";
+    		}
+			fread.close();
+			//FRFR List Creation
+			frfrroot=null;
+			fread= new FileReader("FRFR.txt");
+			readc=0;
+			temp="";
+			while((readc=fread.read())!=-1) {
+				Edge1 tempnode=new Edge1();
 					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-				}
-				tempnode.id2=temp;
-				temp="";
-				while((readc=fread3.read())!=10) {
-					if(readc==45) {
+					cn++;
+					temp=temp.concat(Character.toString(c));
+					while((readc=fread.read())!=32) {
 						c=(char)readc;
 	    				temp=temp.concat(Character.toString(c));
 					}
-					else if(readc>=48 && readc<=57) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-					}
-				}
-				int kval=Integer.valueOf(temp);
-				tempnode.value=kval;
-				tempnode.next=null;
-    			if(frnfr==null)
-    				frnfr=tempnode;
-    			else {
-    				Edge1 k=frnfr;
-    				while(k.next!=null)
-    					k=k.next;
-    				k.next=tempnode;
-    			}
-   
-    			temp="";
-			}
-		fread3= new FileReader("FRNFR.txt");
-		readc=0;
-		temp="";
-		while((readc=fread3.read())!=-1) {
-			Edge1 tempnode=new Edge1();
-				c=(char)readc;
-				temp=temp.concat(Character.toString(c));
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-				}
-				tempnode.id1=temp;
-				temp="";
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-				}
-				tempnode.id2=temp;
-				temp="";
-				while((readc=fread3.read())!=10) {
-					if(readc==45) {
+					tempnode.id1=temp;
+					temp="";
+					while((readc=fread.read())!=32) {
 						c=(char)readc;
 	    				temp=temp.concat(Character.toString(c));
 					}
-					if(readc>=48 && readc<=57) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
+					tempnode.id2=temp;
+					temp="";
+					while((readc=fread.read())!=32) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
 					}
-				}
-				int kval=Integer.valueOf(temp);
-				tempnode.value=kval;
-				tempnode.next=null;
-    			if(frnfr==null)
-    				frnfr=tempnode;
-    			else {
-    				Edge1 k=frnfr;
-    				while(k.next!=null)
-    					k=k.next;
-    				k.next=tempnode;
-    			}
-   
-    			temp="";
-			}
-		fread3= new FileReader("NFRNFR.txt");
-		readc=0;
-		temp="";
-		while((readc=fread3.read())!=-1) {
-			Edge1 tempnode=new Edge1();
-				c=(char)readc;
-				temp=temp.concat(Character.toString(c));
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-				}
-				tempnode.id1=temp;
-				temp="";
-				while((readc=fread3.read())!=32) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-				}
-				tempnode.id2=temp;
-				temp="";
-				while((readc=fread3.read())!=10) {
-					if(readc>=48 && readc<=57) {
-					c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
+					tempnode.type=temp;
+					temp="";
+					while((readc=fread.read())!=10) {
+						if(readc>=48 && readc<=57) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+						}
 					}
+					int kval=Integer.valueOf(temp);
+					tempnode.value=kval;
+					tempnode.next=null;
+	    			if(frfrroot==null)
+	    				frfrroot=tempnode;
+	    			else {
+	    				Edge1 k=frfrroot;
+	    				while(k.next!=null)
+	    					k=k.next;
+	    				k.next=tempnode;
+	    			}
+	   
+	    			temp="";
 				}
-				int kval=Integer.valueOf(temp);
-				tempnode.value=kval;
-				tempnode.next=null;
-    			if(nfrnfr==null)
-    				nfrnfr=tempnode;
-    			else {
-    				Edge1 k=nfrnfr;
-    				while(k.next!=null)
-    					k=k.next;
-    				k.next=tempnode;
-    			}
-   
-    			temp="";
-			}
-		}catch(IOException e) {
+			fread.close();
+			//FRNFR List Creation
+			frnfrroot=null;
+			fread= new FileReader("FRNFR.txt");
+			readc=0;
+			temp="";
+			while((readc=fread.read())!=-1) {
+				Edge1 tempnode=new Edge1();
+					c=(char)readc;
+					temp=temp.concat(Character.toString(c));
+					while((readc=fread.read())!=32) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+					}
+					tempnode.id1=temp;
+					temp="";
+					while((readc=fread.read())!=32) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+					}
+					tempnode.id2=temp;
+					temp="";
+					while((readc=fread.read())!=10) {
+						if(readc==45) {
+							c=(char)readc;
+		    				temp=temp.concat(Character.toString(c));
+						}
+						if(readc>=48 && readc<=57) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+						}
+					}
+					int kval=Integer.valueOf(temp);
+					tempnode.value=kval;
+					tempnode.next=null;
+	    			if(frnfrroot==null)
+	    				frnfrroot=tempnode;
+	    			else {
+	    				Edge1 k=frnfrroot;
+	    				while(k.next!=null)
+	    					k=k.next;
+	    				k.next=tempnode;
+	    			}
+	   
+	    			temp="";
+				}
+			fread.close();
+		//NFRNFR List Creation
+			nfrnfrroot=null;
+			fread= new FileReader("NFRNFR.txt");
+			readc=0;
+			temp="";
+			while((readc=fread.read())!=-1) {
+				Edge1 tempnode=new Edge1();
+					c=(char)readc;
+					temp=temp.concat(Character.toString(c));
+					while((readc=fread.read())!=32) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+					}
+					tempnode.id1=temp;
+					temp="";
+					while((readc=fread.read())!=32) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+					}
+					tempnode.id2=temp;
+					temp="";
+					while((readc=fread.read())!=10) {
+						if(readc>=48 && readc<=57) {
+						c=(char)readc;
+	    				temp=temp.concat(Character.toString(c));
+						}
+					}
+					int kval=Integer.valueOf(temp);
+					tempnode.value=kval;
+					tempnode.next=null;
+	    			if(nfrnfrroot==null)
+	    				nfrnfrroot=tempnode;
+	    			else {
+	    				Edge1 k=nfrnfrroot;
+	    				while(k.next!=null)
+	    					k=k.next;
+	    				k.next=tempnode;
+	    			}
+	   
+	    			temp="";
+				}
+			fread.close();
+		
+		}catch(IOException e5) {
 			
 		}
+	}
+	public static void change_propagation() {
+		String compselect=componentbox.getSelectedItem().toString();
+		String catselect=categorybox.getSelectedItem().toString();
+		int countfrnfr=0;
 		prop_list=new Edge1[1000][cn];
+		if(catselect.compareTo("FR")==0) {
 		//Create one-hop neighbors
-		Edge1 node=frfr;
+		Edge1 node=frfrroot;
 		while(node!=null) {
 			if(node.id1.compareTo(compselect)==0) {
 				if(node.value>=25) {
@@ -2041,7 +2991,7 @@ public class SwingDemo extends JFrame{
 					temp.value=node.value;
 					temp.type=node.type;
 					temp.prob=(double)((double)node.value/(double)100);
-					temp.cprob=0;
+					
 					prop_list[size][0]=temp;
 					size++;
 				}
@@ -2050,23 +3000,12 @@ public class SwingDemo extends JFrame{
 			
 			node=node.next;
 		}
-		//Print one-hop neighbors
-		for(int j=0; j<size;j++) {
-			for(int m=0;m<cn;m++) {
-				if(prop_list[j][m]!=null) {
-					System.out.println(prop_list[j][m].id1+" "+prop_list[j][m].id2+" "+prop_list[j][m].value+" "+prop_list[j][m].prob);
-					
-				}
-				else
-					break;
-			}
-		}
 		//Create chains
 		int flagexit=1;
 		int sizetemp=size;
 		while(flagexit==1) {
 			flagexit=0;
-			System.out.println(size);
+			//System.out.println(size);
 			sizetemp=size;
 			for(int j=0; j<size; j++) {
 				//Extract the last element
@@ -2077,17 +3016,17 @@ public class SwingDemo extends JFrame{
 						break;
 					}
 				}
-				System.out.println("Last=" +last);
+			//	System.out.println("Last=" +last);
 				int count=0;
 				
 				String comp=prop_list[j][last].id2;
-				System.out.println("Comp= "+comp);
-				Edge1 pointer=frfr;
+				//System.out.println("Comp= "+comp);
+				Edge1 pointer=frfrroot;
 				while(pointer!=null) {
 					if(pointer.id1.compareTo(comp)==0) {
-						double cprob=(double)(prop_list[j][last].prob * (double) pointer.value);
-						System.out.println("Matched with "+pointer.id1+" -> "+pointer.id2+" with cprob value "+cprob);
-						if(cprob>=25) {
+						double cprob=(double)(prop_list[j][last].prob * ((double) pointer.value/(double)100));
+						//System.out.println("Matched with "+pointer.id1+" -> "+pointer.id2+" with cprob value "+cprob);
+						if(cprob>=0.25) {
 							count++;
 							flagexit=1;
 							Edge1 temp=new Edge1();
@@ -2095,10 +3034,11 @@ public class SwingDemo extends JFrame{
 							temp.id2=pointer.id2;
 							temp.value=pointer.value;
 							temp.type=pointer.type;
-							temp.prob=(double)((double)pointer.value/(double)100);
-							temp.cprob=cprob;
+							temp.prob=cprob;
+							//temp.prob=(double)((double)pointer.value/(double)100);
+							
 							if(count==1) {
-								System.out.println("Inserted");
+								//System.out.println("Inserted");
 								prop_list[j][last+1]=temp;
 							}
 							else {
@@ -2111,7 +3051,7 @@ public class SwingDemo extends JFrame{
 										temp2.type=prop_list[j][m].type;
 										temp2.value=prop_list[j][m].value;
 										temp2.prob=prop_list[j][m].prob;
-										temp2.cprob=prop_list[j][m].cprob;
+									
 										prop_list[sizetemp][m]=temp2;
 									}
 									else {
@@ -2136,32 +3076,33 @@ public class SwingDemo extends JFrame{
 				//break;
 			}
 			size=sizetemp;
-			for(int l=0; l<size;l++) {
-				for(int m=0;m<cn;m++) {
-					if(prop_list[l][m]!=null) {
-						System.out.print(prop_list[l][m].id1+" "+prop_list[l][m].id2+" "+prop_list[l][m].value+" "+prop_list[l][m].prob+" --> ");
-						
-					}
-					else
-						break;
-				}
-				System.out.println();
-			}
+	
 		}
-		//Print chains
-		for(int j=0; j<size;j++) {
+		for(int l=0; l<size;l++) {
+			String chain="";
 			for(int m=0;m<cn;m++) {
-				if(prop_list[j][m]!=null) {
-					System.out.print(prop_list[j][m].id1+" "+prop_list[j][m].id2+" "+prop_list[j][m].value+" "+prop_list[j][m].prob+" --> ");
+				if(prop_list[l][m]!=null) {
+					if(m==0)
+						chain=chain.concat(prop_list[l][m].id1+"-->"+prop_list[l][m].id2);
+					else
+						chain=chain.concat(prop_list[l][m].id2);
+					//System.out.print(prop_list[l][m].id1+" "+prop_list[l][m].id2+" "+prop_list[l][m].value+" "+prop_list[l][m].prob+" --> ");
+					int ct=m+1;
+					if(prop_list[l][ct]!=null)
+						chain=chain.concat("-->");
 					
 				}
 				else
 					break;
 			}
-			System.out.println();
+			String text="Chain "+(l+1)+" "+chain;
+			riskexpose.append(text);
+			riskexpose.append("\n");
+			//System.out.println();
 		}
+		
 		prop_frnfrlist=new Edge1[1000][1];
-		Edge1 root=frnfr;
+		Edge1 root=frnfrroot;
 		size2=0;
 		while(root!=null)
 		{
@@ -2176,287 +3117,150 @@ public class SwingDemo extends JFrame{
 			root=root.next;
 		}
 		prop_nfrnfrlist=new Edge1[1000][1];
-		root=frnfr;
+		root=frnfrroot;
 		size3=0;
 		while(root!=null)
 		{
 			if(root.id1.compareTo(compselect)==0 && root.value>=25) {
-				Edge1 root2=nfrnfr;
+				Edge1 root2=nfrnfrroot;
 				while(root2!=null) {
 					if(root2.id1.compareTo(root.id2)==0 || root2.id2.compareTo(root.id2)==0) {
+						//Check if already exists or not
+						int cflag=0;
+						for(int h=0;h<size3;h++) {
+							if(prop_nfrnfrlist[h][0].id1.compareTo(root2.id1)==0 && prop_nfrnfrlist[h][0].id2.compareTo(root2.id2)==0)
+								cflag=1;
+						}
+						if(cflag==0) {
 						Edge1 nodein=new Edge1();
 						nodein.id1=root2.id1;
 						nodein.id2=root2.id2;
 						nodein.value=root2.value;
 						prop_nfrnfrlist[size3][0]=nodein;
 						size3++;
+						}
 					}
 					root2=root2.next;
 				}
 			}
 			root=root.next;
 		}
-		create_riskgraph();
+		}
+		else if(catselect.compareTo("NFR")==0) {
+			prop_frnfrlist=new Edge1[1000][1];
+			Edge1 root=frnfrroot;
+			size2=0;
+			while(root!=null)
+			{
+				if(root.id2.compareTo(compselect)==0 && root.value>=25) {
+					Edge1 nodein=new Edge1();
+					nodein.id1=root.id1;
+					nodein.id2=root.id2;
+					nodein.value=root.value;
+					prop_frnfrlist[size2][0]=nodein;
+					size2++;
+				}
+				root=root.next;
+			}
+			prop_nfrnfrlist=new Edge1[1000][1];
+			root=frnfrroot;
+			size3=0;
+			Edge1 root2=nfrnfrroot;
+					while(root2!=null) {
+						if(root2.id1.compareTo(compselect)==0 || root2.id2.compareTo(compselect)==0) {
+							//Check if already exists or not
+							int cflag=0;
+							for(int h=0;h<size3;h++) {
+								if(prop_nfrnfrlist[h][0].id1.compareTo(root2.id1)==0 && prop_nfrnfrlist[h][0].id2.compareTo(root2.id2)==0)
+									cflag=1;
+							}
+							if(cflag==0) {
+							Edge1 nodein=new Edge1();
+							nodein.id1=root2.id1;
+							nodein.id2=root2.id2;
+							nodein.value=root2.value;
+							prop_nfrnfrlist[size3][0]=nodein;
+							size3++;
+							}
+						}
+						root2=root2.next;
+					}
+					System.out.println("FR-NFR Edges are: ");
+					for(int t=0;t<size2;t++) {
+						System.out.println(" Edge is "+prop_frnfrlist[t][0].id1+" -> "+prop_frnfrlist[t][0].id2);
+					}
+		}
+		//create_riskgraph();
 	}
 	public static void create_riskgraph() {
-		Node fr=null;
-		
-		Edge1 frnfr=null;
-		Edge1 frfr=null;
-		Edge1 nfrnfr=null;
 		String compselect=componentbox.getSelectedItem().toString();
-		try {
-			
-			FileReader fread1= new FileReader("FR.txt");
-			int readc=0;
-			char c;
-			String temp="";
-			while((readc=fread1.read())!=-1) {
-    				c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-    				while((readc=fread1.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    			while((readc=fread1.read())!=10) {
-    				if(readc==-1)
-    					break;
-					
-				}
-    			Node tempnode=new Node();
-    			tempnode.id=temp;
-    			tempnode.next=null;
-    			if(fr==null)
-    				fr=tempnode;
-    			else {
-    				Node k=fr;
-    				while(k.next!=null)
-    					k=k.next;
-    				k.next=tempnode;
-    			}
-    			temp="";
-    		}
-			fread1.close();
-			
-			FileReader fread3= new FileReader("FRFR.txt");
-			readc=0;
-			temp="";
-			while((readc=fread3.read())!=-1) {
-				//System.out.println("Hello");
-				Edge1 tempnode=new Edge1();
-    				c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-    				while((readc=fread3.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    				tempnode.id1=temp;
-    			//Hello Hie
-    			//	System.out.println("temp= "+temp);
-    				temp="";
-    				while((readc=fread3.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    				tempnode.id2=temp;
-    			
-    			//	System.out.println("temp= "+tempnode.id2);
-    				temp="";
-    				while((readc=fread3.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    				tempnode.type=temp;
-    			//	System.out.println("temp= "+tempnode.type);
-    				temp="";
-    				while((readc=fread3.read())!=10) {
-    					if(readc>=48 && readc<=57) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    					}
-    				}
-    				//System.out.println("Temp=" +temp);
-    				int kval=Integer.valueOf(temp);
-    				tempnode.value=kval;
-    				//System.out.println("temp= "+tempnode.value);
-    				//System.out.println(tempnode.id1+" "+tempnode.id2+" "+tempnode.value);
-    				//readc=fread3.read();
-    				
-    				//if(readc==-1)
-    					//break;
-    				tempnode.next=null;
-        			if(frfr==null)
-        				frfr=tempnode;
-        			else {
-        				Edge1 k=frfr;
-        				while(k.next!=null)
-        					k=k.next;
-        				k.next=tempnode;
-        			}
-        			temp="";
-				}
-			Edge1 ge=frfr;
-			//while(ge!=null) {
-				//System.out.println(ge.id1+" "+ge.id2+" "+ge.type+" "+ge.value);
-				//ge=ge.next;
-			//}
-			fread3.close();
-			FileReader fread4= new FileReader("FRNFR.txt");
-			readc=0;
-			temp="";
-			while((readc=fread4.read())!=-1) {
-				//System.out.println("Hello2");
-				Edge1 tempnode=new Edge1();
-    				c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-    				while((readc=fread4.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    				tempnode.id1=temp;
-    				temp="";
-    				while((readc=fread4.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    				tempnode.id2=temp;
-    				temp="";
-    				while((readc=fread4.read())!=10) {
-    					if(readc==45) {
-    						c=(char)readc;
-    	    				temp=temp.concat(Character.toString(c));
-    					}
-    					else if(readc>=48 && readc<=57) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    					}
-    				}
-    				tempnode.value=Integer.valueOf(temp);
-    			//	readc=fread4.read();
-    				//if(readc==-1)
-    					//break;
-    				tempnode.next=null;
-        			if(frnfr==null)
-        				frnfr=tempnode;
-        			else {
-        				Edge1 k=frnfr;
-        				while(k.next!=null)
-        					k=k.next;
-        				k.next=tempnode;
-        			}
-        			temp="";
-				}
-			fread4.close();
-			FileReader fread5= new FileReader("NFRNFR.txt");
-			readc=0;
-			temp="";
-			while((readc=fread5.read())!=-1) {
-				//System.out.println("Hello3");
-				Edge1 tempnode=new Edge1();
-    				c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-    				while((readc=fread5.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    				tempnode.id1=temp;
-    				temp="";
-    				while((readc=fread5.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    				tempnode.id2=temp;
-    				temp="";
-    				while((readc=fread5.read())!=10) {
-    					if(readc>=48 && readc<=57) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    					}
-    				}
-    				tempnode.value=Integer.valueOf(temp);
-    				//readc=fread5.read();
-    				//if(readc==-1)
-    					//break;
-    				tempnode.next=null;
-        			if(nfrnfr==null)
-        				nfrnfr=tempnode;
-        			else {
-        				Edge1 k=nfrnfr;
-        				while(k.next!=null)
-        					k=k.next;
-        				k.next=tempnode;
-        			}
-        			temp="";
-				}
-			fread5.close();
-			}catch(Exception e2) {
-				System.out.println("File not found!");
-			}
+		String catselect=categorybox.getSelectedItem().toString();
 		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 		Graph graph = new MultiGraph("Risk Exposure Graph");
 		 graph.setAttribute("ui.stylesheet", "node {size : 40px;text-size: 16; fill-color: yellow;text-mode:normal; text-style: bold; text-alignment: center; text-background-mode: none; fill-mode: dyn-plain; text-visibility-mode: normal;}");
-		 Node frroot=fr;
-		 while(frroot!=null) {
-			 graph.addNode(frroot.id); 
-			 frroot=frroot.next;
+		 Node frroottemp=frroot;
+		 while(frroottemp!=null) {
+			 graph.addNode(frroottemp.id); 
+			 frroottemp=frroottemp.next;
 		 }
 		Node nfr=nfrroot;
 		 while(nfr!=null) {
-			 //String name=nfr.id;
-			// int s=nfr.satisfaction;
-			// String id=name+" "+s;
 			 graph.addNode(nfr.id);
 			 nfr=nfr.next;
 		 }
-		 Edge1 frfrroot=frfr;
-		 while(frfrroot!=null) {
-			 	String v1=frfrroot.id1;
-	   	 		String v2=frfrroot.id2;
-	   	 		String v3=String.valueOf(frfrroot.value);
+		 Edge1 frfr=frfrroot;
+		 while(frfr!=null) {
+			 	String v1=frfr.id1;
+	   	 		String v2=frfr.id2;
+	   	 		String v3="";
+	   	 		v3=v3.concat("Dep = "+String.valueOf(frfr.value));
 	   	 		String label=v1+"-"+v2;
 	   	 		final Edge edge1 = graph.addEdge(label, v2, v1, true);
 	   	 		edge1.addAttribute("layout.weight", 16);
 	   	 		edge1.addAttribute("ui.label", v3);
 	   	 		edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
-	   	 		frfrroot=frfrroot.next;
+	   	 		frfr=frfr.next;
 		 }
-		 Edge1 frnfrroot=frnfr;
-		 while(frnfrroot!=null) {
-			 	String v1=frnfrroot.id1;
-	   	 		String v2=frnfrroot.id2;
-	   	 		String v3=String.valueOf(frnfrroot.value);
+		 Edge1 frnfr=frnfrroot;
+		 while(frnfr!=null) {
+			 	String v1=frnfr.id1;
+	   	 		String v2=frnfr.id2;
+	   	 		String v3="";
+	   	 		v3=v3.concat("Sat = "+String.valueOf(frnfr.value));
 	   	 		String label=v1+"-"+v2;
 	   	 		final Edge edge1 = graph.addEdge(label, v1, v2, true);
 	   	 		edge1.addAttribute("layout.weight", 16);
 	   	 		edge1.addAttribute("ui.label", v3);
-	   	 	if(v1.compareTo(compselect)==0) {
-	   	 		if(frnfrroot.value>=25 && frnfrroot.value<50)
+	   	 	if(v1.compareTo(compselect)==0 || v2.compareTo(compselect)==0) {
+	   	 		if(frnfr.value>=0.25 && frnfr.value<0.50)
 	   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,255,51); text-color: rgb(0,0,0);");
-	   	 		else if (frnfrroot.value>=50 && frnfrroot.value<75)
+	   	 		else if (frnfr.value>=0.50 && frnfr.value<0.75)
 	   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,128,0); text-color: rgb(0,0,0);");
 	   	 		else
 	   	 			edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,0,0); text-color: rgb(0,0,0);");
 	   	 	}
 	   	 	else
 	   	 		edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
-	   	 		frnfrroot=frnfrroot.next;
+	   	 		frnfr=frnfr.next;
 		 }
-		 Edge1 nfrnfrroot=nfrnfr;
-		 while(nfrnfrroot!=null) {
-			 	String v1=nfrnfrroot.id1;
-	   	 		String v2=nfrnfrroot.id2;
-	   	 		String v3=String.valueOf(nfrnfrroot.value);
+		 Edge1 nfrnfr=nfrnfrroot;
+		 while(nfrnfr!=null) {
+			 	String v1=nfrnfr.id1;
+	   	 		String v2=nfrnfr.id2;
+	   	 		String v3="";
+	   	 		v3=v3.concat("Con = "+String.valueOf(nfrnfr.value));
 	   	 		String label=v1+"-"+v2;
 	   	 		final Edge edge1 = graph.addEdge(label, v1, v2, false);
 	   	 		edge1.addAttribute("layout.weight", 16);
 	   	 		edge1.addAttribute("ui.label", v3);
-	   	 		frnfrroot=frnfr;
-	   	 		while(frnfrroot!=null) {
-	   	 			if(frnfrroot.id1.compareTo(compselect)==0) {
-	   	 				if(v1.compareTo(frnfrroot.id2)==0 || v2.compareTo(frnfrroot.id2)==0) {
-	   	 				if(nfrnfrroot.value>=25 && nfrnfrroot.value<50)	
+	   	 		frnfr=frnfrroot;
+	   	 		if(catselect.compareTo("FR")==0) {
+	   	 		while(frnfr!=null) {
+	   	 			if(frnfr.id1.compareTo(compselect)==0) {
+	   	 				if(v1.compareTo(frnfr.id2)==0 || v2.compareTo(frnfr.id2)==0) {
+	   	 				if(nfrnfr.value>=25 && nfrnfr.value<50)	
 	   	 					edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,255,51); text-color: rgb(0,0,0);");
-	   	 				else if(nfrnfrroot.value>=50 && nfrnfrroot.value<75)
+	   	 				else if(nfrnfr.value>=50 && nfrnfr.value<75)
 	   	 					edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,128,0); text-color: rgb(0,0,0);");
 	   	 				else
 	   	 				edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,0,0); text-color: rgb(0,0,0);");
@@ -2465,35 +3269,82 @@ public class SwingDemo extends JFrame{
 	   	 				edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
 	   	 			}
 	   	 				
-	   	 			frnfrroot=frnfrroot.next;
+	   	 			frnfr=frnfr.next;
+	   	 		}
+	   	 		}
+	   	 		else if(catselect.compareTo("NFR")==0) {
+	   	 			if(v1.compareTo(compselect)==0 || v2.compareTo(compselect)==0) {
+	   	 			if(nfrnfr.value>=25 && nfrnfr.value<50)	
+   	 					edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,255,51); text-color: rgb(0,0,0);");
+   	 				else if(nfrnfr.value>=50 && nfrnfr.value<75)
+   	 					edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,128,0); text-color: rgb(0,0,0);");
+   	 				else
+   	 				edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(255,0,0); text-color: rgb(0,0,0);");
+	   	 			}
+	   	 		else
+   	 				edge1.addAttribute("ui.style", "text-size:16; text-style: bold; size: 2px; fill-color: rgb(46,139,87); text-color: rgb(0,0,0);");
 	   	 		}
 	   	 		//edge1.addAttribute("font-size", 20);
 	   	 		
-	   	 		nfrnfrroot=nfrnfrroot.next;
+	   	 		nfrnfr=nfrnfr.next;
 		 }
 		
 		 for (final org.graphstream.graph.Node node : graph) {
 			 node.addAttribute("ui.label", node.getId());
 				String k= node.getId();
 			
-				if(k.compareTo(compselect)==0) {
+				if(k.compareTo(compselect)==0 && catselect.compareTo("FR")==0) {
 					node.addAttribute("layout.weight", 150);
 					node.addAttribute("ui.style", "shape: circle; fill-color: rgb(102,0,0); text-color: rgb(255,255,255);");
-					/*try {
-						Thread.sleep(1000);
-					}catch(Exception sl) {
-						
-					}*/
+				}
+				else if(k.compareTo(compselect)==0 && catselect.compareTo("NFR")==0) {
+					node.addAttribute("layout.weight", 150);
+					node.addAttribute("ui.style", "shape: rounded-box; fill-color: rgb(102,0,0); text-color: rgb(255,255,255);");
+					Node t=nfrroot;
+				    while(t!=null) {
+				    	if(t.id.compareTo(k)==0) {
+				    		String name=t.id;
+							int s=t.satisfaction;
+							String id=name+" "+s;
+							node.addAttribute("ui.label", id);
+				    	}
+				    	t=t.next;
+				    }
 				}
 			
 				else if(k.contains("fr") && !k.contains("nfr")) {
-					node.addAttribute("ui.label", node.getId());
-					node.addAttribute("layout.weight", 150);
-					node.addAttribute("ui.style", "shape: circle; fill-color: rgb(0,100,255); text-color: rgb(255,255,255);");
+					double maxprob=0.0;
+					for(int i=0; i<size; i++) {
+						for(int m=0; m<cn; m++) {
+							if(prop_list[i][m]!=null) {
+								if(prop_list[i][m].id2.compareTo(k)==0) {
+									if(prop_list[i][m].prob>maxprob)
+										maxprob=prop_list[i][m].prob;
+								}
+							}
+						}
+					}
+					double maximp=0.0;
+					Node temproot=frroot;
+					while(temproot!=null) {
+						if(temproot.id.compareTo(k)==0)
+							maximp=temproot.impact;
+						temproot=temproot.next;
+					}
+					String label=k;
+					maximp = Math.round(maximp * 100.0) / 100.0;
+					if(maxprob>0.0)
+					{
+						label= label.concat(" P = \n"+String.valueOf(maxprob)+" I = \n"+String.valueOf(maximp));
+					}
+					node.addAttribute("ui.label", label);
+					node.addAttribute("layout.weight", 300);
+					node.addAttribute("ui.style", "shape: circle; fill-color: rgb(0,100,255); text-color: rgb(0,0,0);");
+					
 				}
 				else if(k.contains("nfr")) {
 				
-					node.addAttribute("layout.weight", 200);
+					node.addAttribute("layout.weight", 300);
 				    node.addAttribute("ui.style", "shape: rounded-box; fill-color: rgb(102,204,0); text-color: rgb(0,0,0);");
 				    Node t=nfrroot;
 				    while(t!=null) {
@@ -2506,51 +3357,51 @@ public class SwingDemo extends JFrame{
 				    	t=t.next;
 				    }
 				}
-
+				if(catselect.compareTo("FR")==0) {
 				for(int i=0; i<size; i++) {
 					for(int m=0; m<cn; m++) {
 						if(prop_list[i][m]!=null) {
 							if(prop_list[i][m].id2.compareTo(k)==0) {
 								//System.out.println("Matched Yo");
-								System.out.println(prop_list[i][m].prob);
+								//System.out.println(prop_list[i][m].prob);
 								double cvalue=prop_list[i][m].prob;
-								if(prop_list[i][m].cprob!=0) {
-									cvalue= prop_list[i][m].cprob;
-									if(cvalue>=25 && cvalue<50) {
+								if(prop_list[i][m].prob!=0) {
+									cvalue= prop_list[i][m].prob;
+									if(cvalue>=0.25 && cvalue<0.50) {
 										//System.out.println("Here1");
-										node.addAttribute("layout.weight", 150);
-										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 255, 51); text-color: rgb(255,255,255);");
+										node.addAttribute("layout.weight", 300);
+										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 255, 51); text-color: rgb(0,0,0);");
 									}
-									else if(cvalue>=50 && cvalue<75) {
+									else if(cvalue>=0.50 && cvalue<0.75) {
 										//System.out.println("Here2");
-										node.addAttribute("layout.weight", 150);
-										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 128, 0); text-color: rgb(255,255,255);");
+										node.addAttribute("layout.weight", 300);
+										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 128, 0); text-color: rgb(0,0,0);");
 										
 									}
 									else
 									{
 										//System.out.println("Here3");
-										node.addAttribute("layout.weight", 150);
-										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255,0,0); text-color: rgb(255,255,255);");
+										node.addAttribute("layout.weight", 300);
+										node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255,0,0); text-color: rgb(0,0,0);");
 									}
 								}
 								else {
 								if(prop_list[i][m].prob>=0.25 && prop_list[i][m].prob<0.50) {
 									//System.out.println("Here1");
-									node.addAttribute("layout.weight", 150);
-									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 255, 51); text-color: rgb(255,255,255);");
+									node.addAttribute("layout.weight", 300);
+									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 255, 51); text-color: rgb(0,0,0);");
 								}
 								else if(prop_list[i][m].prob>=0.50 && prop_list[i][m].prob<0.75) {
 									//System.out.println("Here2");
-									node.addAttribute("layout.weight", 150);
-									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 128, 0); text-color: rgb(255,255,255);");
+									node.addAttribute("layout.weight", 300);
+									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255, 128, 0); text-color: rgb(0,0,0);");
 									
 								}
 								else
 								{
 									//System.out.println("Here3");
-									node.addAttribute("layout.weight", 150);
-									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255,0,0); text-color: rgb(255,255,255);");
+									node.addAttribute("layout.weight", 300);
+									node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255,0,0); text-color: rgb(0,0,0);");
 								}
 								}
 								
@@ -2564,6 +3415,25 @@ public class SwingDemo extends JFrame{
 						
 					}
 				}
+		 }
+				else if(catselect.compareTo("NFR")==0) {
+					for(int p=0;p<size2;p++) {
+						if(prop_frnfrlist[p][0].id1.compareTo(k)==0) {
+							node.addAttribute("layout.weight", 300);
+							node.addAttribute("ui.style", "shape: circle; fill-color: rgb(255,0,0); text-color: rgb(255,255,255);");
+						}
+					}
+					for(int p=0;p<size3;p++) {
+						if(prop_nfrnfrlist[p][0].id1.compareTo(k)==0 && prop_nfrnfrlist[p][0].id1.compareTo(compselect)!=0) {
+							node.addAttribute("layout.weight", 300);
+							node.addAttribute("ui.style", "shape: rounded-box; fill-color: rgb(255,0,0); text-color: rgb(255,255,255);");
+						}
+						if(prop_nfrnfrlist[p][0].id2.compareTo(k)==0 && prop_nfrnfrlist[p][0].id2.compareTo(compselect)!=0) {
+							node.addAttribute("layout.weight", 300);
+							node.addAttribute("ui.style", "shape: rounded-box; fill-color: rgb(255,0,0); text-color: rgb(255,255,255);");
+						}
+					}
+				}
 			}
 		 Viewer viewer = graph.display();
 		 viewer.enableAutoLayout();
@@ -2571,89 +3441,6 @@ public class SwingDemo extends JFrame{
 
 	}
 	public static void compute_satisfaction() {
-		nfrroot=null;
-		Edge1 frnfrroot=null;
-		try {
-			FileReader fread= new FileReader("NFR.txt");
-			int readc=0;
-			String temp="";
-			char c;
-			while((readc=fread.read())!=-1) {
-    				c=(char)readc;
-    				temp=temp.concat(Character.toString(c));
-    				while((readc=fread.read())!=32) {
-    					c=(char)readc;
-	    				temp=temp.concat(Character.toString(c));
-    				}
-    			while((readc=fread.read())!=10) {
-    				if(readc==-1)
-    					break;
-					
-				}
-    			Node tempnode=new Node();
-    			tempnode.id=temp;
-    			tempnode.next=null;
-    			if(nfrroot==null)
-    				nfrroot=tempnode;
-    			else {
-    				Node k=nfrroot;
-    				while(k.next!=null)
-    					k=k.next;
-    				k.next=tempnode;
-    			}
-    			temp="";
-    		}
-			fread.close();
-			fread=new FileReader("FRNFR.txt");
- 			String temp1="";
- 			String temp2="";
- 			String temp3="";
- 			while((readc=fread.read())!=-1) {
-     				c=(char)readc;
-     				temp1=temp1.concat(Character.toString(c));
-     				while((readc=fread.read())!=32) {
-     					c=(char)readc;
- 	    				temp1=temp1.concat(Character.toString(c));
-     				}
-     				temp2="";
-     				while((readc=fread.read())!=32) {
-     					c=(char)readc;
- 	    				temp2=temp2.concat(Character.toString(c));
-     				}
-     				temp3="";
-     			while((readc=fread.read())!=10) {
-     					if(readc==45) {
-     						c=(char)readc;
-	        				temp3=temp3.concat(Character.toString(c));
-     					}
-     					else if(readc>=48 && readc<=57) {
-    					c=(char)readc;
-        				temp3=temp3.concat(Character.toString(c));
-    					}
-    				
-     				if(readc==-1)
-     					break;
-     			}
-     			Edge1 newnode=new Edge1();
-     			newnode.id1=temp1;
-     			newnode.id2=temp2;
-     			newnode.value=Integer.valueOf(temp3);
-     			newnode.next=null;
-     			if(frnfrroot==null)
-     				frnfrroot=newnode;
-     			else {
-     				Edge1 k=frnfrroot;
-     				while(k.next!=null) {
-     					k=k.next;
-     				}
-     				k.next=newnode;
-     			}
-     			temp1="";
-     		}
- 			fread.close();
-		}catch(IOException nfr) {
-			System.out.println("File not found!!");
-		}
 		Node j=nfrroot;
 		while(j!=null) {
 			Edge1 t=frnfrroot;
@@ -2672,11 +3459,463 @@ public class SwingDemo extends JFrame{
 		}
 	}
 	public static void compute_conflict() {
+		Edge1 temproot=nfrnfrroot;
+		while(temproot!=null) {
+			int condegree=0;
+			int val1=0;
+			int val2=0;
+			Node p=nfrroot;
+			while(p!=null) {
+				if(temproot.id1.compareTo(p.id)==0) {
+					val1=100-p.satisfaction;
+				}
+				else if(temproot.id2.compareTo(p.id)==0) {
+					val2=100-p.satisfaction;
+				}
+				p=p.next;
+			}
+			condegree=val1+val2;
+			if(condegree>=100)
+				condegree=100;
+			temproot.value=condegree;
+			temproot=temproot.next;
+		}
+		try {
+		FileWriter fw1 = new FileWriter("NFRNFR.txt",false); 
+		BufferedWriter bw1 = new BufferedWriter(fw1);
+		temproot=nfrnfrroot;
+	
+		while(temproot!=null) {
+			//System.out.println("The edge is" +temproot.id1+" "+temproot.id2+" "+temproot.value);
+			bw1.write(temproot.id1+" "+temproot.id2+" "+temproot.value);
+			bw1.newLine();
+			temproot=temproot.next;
+		}
+		//System.out.println("Hello");
+		bw1.close();
+		fw1.close();
+		}catch(IOException j) {
+			System.out.println("Writing Error");
+		}	
+	}
+	public static void calculate_nodeimpact() {
+		Node fr=frroot;
+		String compselect=componentbox.getSelectedItem().toString();
+		System.out.println("Started Execution");
+		fr=frroot;
+		while(fr!=null) {
+			System.out.println("FR  "+fr.id);
+			fr=fr.next;
+		}
+		fr=frroot;
+		while(fr!=null) {
+			System.out.println("Comparing with "+fr.id);
+			if(fr.id.compareTo(compselect)!=0) {
+			Edge1 ff=frfrroot;
+			double sum=0;
+			double weight=0;
+			int count=0;
+			while(ff!=null) {
+				if(ff.id2.compareTo(fr.id)==0) {
+					sum=sum+(double)ff.value;
+					count++;
+					if(ff.value>=25 && ff.value<50)
+						weight=weight+(double)1;
+					else if(ff.value>=50 && ff.value<75)
+						weight=weight+(double)2;
+					else if(ff.value>=75)
+						weight=weight+(double)3;
+					if(ff.type.compareTo("Cohesion")==0)
+						weight=weight+(double)1;
+					else
+						weight=weight+(double)2;
+				}
+				ff=ff.next;
+				
+			}
+			int max= 100*count;
+			sum= (double)(sum-(double)count)/(double)((double)max-(double)1);
+			weight= weight / ((double)6*(double)count);
+			sum = sum * weight;
+			fr.impact= sum;
+			
+		}
+			else 
+				fr.impact=0;
+		fr=fr.next;
+		}
+		System.out.println("Finished Execution");
+		fr=frroot;
+		while(fr!=null) {
+			System.out.println("Node Id = "+fr.id+" Impact value= "+fr.impact);
+			fr=fr.next;
+		}
+	}
+	public static void calculate_risk() {
+		String catselect=categorybox.getSelectedItem().toString();
+		double valff=0; // Stores FR-FR impact
+		double valfnf=0; // Stores FR-NFR impact
+		double valnfnf=0; // Stores NFR-NFR impact
+		double[] sumff=new double[size];
+		double cat=0;
+		double type=0;
+		double frozen=0;
+		int index=0;
+		double prob=0;
+		double impact=0;
+		if(catselect.compareTo("FR")==0) {
+		for(int l=0; l<size;l++) {	
+			sumff[index]=0;
+			cat=0;
+			type=0;
+			frozen=0;
+			int count=0;
+			for(int m=0;m<cn;m++) {
+				if(prop_list[l][m]!=null) {
+					sumff[index]=sumff[index]+prop_list[l][m].value;
+					//System.out.println(prop_list[l][m].id1+" "+ prop_list[l][m].id2+" "+prop_list[l][m].value);
+					if(prop_list[l][m].value>=25 && prop_list[l][m].value<50) 
+						cat=cat+1;
+					else if(prop_list[l][m].value>=50 && prop_list[l][m].value<75)
+						cat=cat+2;
+					else if(prop_list[l][m].value>=75)
+						cat=cat+3;
+					if(prop_list[l][m].type.compareTo("Cohesion")==0)
+						type=type+1;
+					else
+						type=type+2;
+					frozen=frozen+1;
+					count=count+1;
+				}
+				else
+					break;
+			}
+			double weight= (cat+type+frozen)/(double)((double)6*(double)count);
+			 sumff[index]= (double)(sumff[index]-(double)count)/(double)((double)((double)100*(double)count)-(double)count);
+			//System.out.println("Category weight= "+cat+" Type weight = "+type+" Frozen weight= "+frozen);
+			//System.out.println("Count= "+count+" Weight = "+weight);
+			//System.out.println("Before = "+sumff[index]);
+			sumff[index]=sumff[index]*weight;
+			//System.out.println("Chain Impact= "+sumff[index]);
+			index++;
+		}
+		riskmeasure.append("FR-FR Impact");
+		riskmeasure.append("\n");
+		for(int i=0; i<index; i++) {
+			//double normal= (double)(sumff[i]-(double)1)/(double)((double)100-(double)1);
+			String text="Chain "+(i+1)+" impact is "+sumff[i];
+			riskmeasure.append(text);
+			riskmeasure.append("\n");
+		}
 		
+		double sumfnf=0;
+		double sat=0;
+		double prio=0;
+		
+		for(int l=0; l<size2;l++) {	
+			String nfr=prop_frnfrlist[l][0].id2;
+			Node temp=nfrroot;
+			sumfnf=sumfnf+prop_frnfrlist[l][0].value;
+			while(temp!=null) {
+				if(temp.id.compareTo(nfr)==0) {
+					if(temp.satisfaction>0 && temp.satisfaction<35)
+						sat=sat+3;
+					else if(temp.satisfaction>=35 && temp.satisfaction<75)
+						sat=sat+2;
+					else if(temp.satisfaction>=75)
+						sat=sat+1;
+					if(temp.priority>0 && temp.priority<35)
+						prio=prio+1;
+					else if(temp.priority>=35 && temp.priority<75)
+						prio=prio+2;
+					else if(temp.priority>=75)
+						prio=prio+3;	
+				}
+				temp=temp.next;
+			}
+			
+		}
+			double weight= (sat+prio)/(double)((double)6*(double)size2);
+			//System.out.println("Satisfaction weight = "+sat+" Priority weight= "+prio+" Count= "+size2);
+			//System.out.println("weight "+weight);
+			//System.out.println("sumfnf= "+sumfnf);
+			sumfnf= (double)(sumfnf-(double)size2)/(double)((double)((double)100*(double)size2)-(double)size2);
+			sumfnf=sumfnf*weight;
+			//System.out.println("sumfnf= "+sumfnf);
+			
+			//double sumfnfnormal= (double)(sumfnf-(double)1)/(double)((double)100-(double)1);
+			riskmeasure.append("FR-NFR Impact");
+			riskmeasure.append("\n");
+			String text="Impact is "+sumfnf;
+			riskmeasure.append(text);
+			riskmeasure.append("\n");
+			
+			double sumnfnf=0;
+			double prio1=0;
+			double prio2=0;
+			for(int l=0; l<size3;l++) {	
+				String nfr1=prop_nfrnfrlist[l][0].id1;
+				String nfr2=prop_nfrnfrlist[l][0].id2;
+				Node temp=nfrroot;
+				sumnfnf=sumnfnf+prop_nfrnfrlist[l][0].value;
+				while(temp!=null) {
+					if(temp.id.compareTo(nfr1)==0) {
+						if(temp.priority>0 && temp.priority<35)
+							prio1=prio1+1;
+						else if(temp.priority>=35 && temp.priority<75)
+							prio1=prio1+2;
+						else if(temp.priority>=75)
+							prio1=prio1+3;	
+					}
+					if(temp.id.compareTo(nfr2)==0) {
+						if(temp.priority>0 && temp.priority<35)
+							prio2=prio2+1;
+						else if(temp.priority>=35 && temp.priority<75)
+							prio2=prio2+2;
+						else if(temp.priority>=75)
+							prio2=prio2+3;	
+					}
+					temp=temp.next;
+				}
+		}
+		weight= (prio1+prio2)/(double)((double)6*(double)size3*(double)2);
+		System.out.println("Priority weight 1= "+prio1+" Priority weight 2= "+prio2+" Count= "+size3);
+		System.out.println("weight "+weight);
+		System.out.println("sumnfnf= "+sumnfnf);
+		sumnfnf= (double)(sumnfnf-(double)size3)/(double)((double)((double)100*(double)size3)-(double)size3);
+		sumnfnf=sumnfnf*weight;
+		System.out.println("sumnfnf= "+sumnfnf);
+		//double sumnfnfnormal= (double)(sumnfnf-(double)1)/(double)((double)100-(double)1);
+		riskmeasure.append("NFR-NFR Impact");
+		riskmeasure.append("\n");
+		text="Impact is "+sumnfnf;
+		riskmeasure.append(text);
+		riskmeasure.append("\n");
+		
+		//Count total edges
+		int edgecount=0;
+		Edge1 root=frfrroot;
+		while(root!=null) {
+			edgecount++;
+			root=root.next;
+		}
+		root=frnfrroot;
+		while(root!=null) {
+			edgecount++;
+			root=root.next;
+		}
+		root=nfrnfrroot;
+		while(root!=null) {
+			edgecount++;
+			root=root.next;
+		}
+		double maximpact=0;
+		int size1=0;
+		int temp=0;
+		for(int j=0; j<index; j++) {
+			if(maximpact<sumff[j]) {
+				size1=0;
+				for(int m=0;m<cn;m++) {
+					if(prop_list[j][m]!=null) {
+						size1++;
+					}
+				}
+				maximpact=sumff[j];
+				temp=j;
+			}
+			else if(maximpact==sumff[j]) {
+				int s1=0;
+				for(int m=0;m<cn;m++) {
+					if(prop_list[temp][m]!=null) {
+						s1++;
+					}
+				}
+				if(size1<s1) {
+					size1=s1;
+					temp=j;
+					maximpact=sumff[j];
+				}
+			}
+		}
+		int affectededgecount=size2+size3+size1;
+		prob=(double)(affectededgecount)/(double)(edgecount);
+		double sumffnormal= (double)(maximpact-(double)1)/(double)((double)100-(double)1);
+		impact=(double)(maximpact+sumfnf+sumnfnf);
+		double risk= prob * impact;
+		//text="Maximum Impact is "+impact;
+		//riskmeasure.append(text);
+		//riskmeasure.append("\n");
+		text=" Maximum Risk is "+risk;
+		riskmeasure.append(text);
+		riskmeasure.append("\n");
+		}
+		else if(catselect.compareTo("NFR")==0) {
+			double sumfnf=0;
+			double sat=0;
+			double prio=0;
+			for(int l=0; l<size2;l++) {	
+				sumfnf=sumfnf+prop_frnfrlist[l][0].value;
+			}
+			String nfr=prop_frnfrlist[0][0].id2;	
+			Node temp=nfrroot;
+			while(temp!=null) {
+				if(temp.id.compareTo(nfr)==0) {
+					if(temp.satisfaction>0 && temp.satisfaction<35)
+						sat=sat+3;
+					else if(temp.satisfaction>=35 && temp.satisfaction<75)
+						sat=sat+2;
+					else if(temp.satisfaction>=75)
+						sat=sat+1;
+					if(temp.priority>0 && temp.priority<35)
+						prio=prio+1;
+					else if(temp.priority>=35 && temp.priority<75)
+						prio=prio+2;
+					else if(temp.priority>=75)
+						prio=prio+3;	
+				}
+				temp=temp.next;
+			}
+				double weight= (sat+prio)/(double)((double)6);
+				System.out.println("Satisfaction weight = "+sat+" Priority weight= "+prio+" Count= "+size2);
+				System.out.println("weight "+weight);
+				System.out.println("sumfnf= "+sumfnf);
+				sumfnf= (double)(sumfnf-(double)size2)/(double)((double)((double)100*(double)size2)-(double)size2);
+				sumfnf=sumfnf*weight;
+				System.out.println("sumfnf= "+sumfnf);
+				
+				//double sumfnfnormal= (double)(sumfnf-(double)1)/(double)((double)100-(double)1);
+				riskmeasure.append("FR-NFR Impact");
+				riskmeasure.append("\n");
+				String text="Impact is "+sumfnf;
+				riskmeasure.append(text);
+				riskmeasure.append("\n");
+				double sumnfnf=0;
+				double prio1=0;
+				double prio2=0;
+				String compselect=componentbox.getSelectedItem().toString();
+				for(int l=0; l<size3;l++) {	
+					String nfr1=prop_nfrnfrlist[l][0].id1;
+					String nfr2=prop_nfrnfrlist[l][0].id2;
+					temp=nfrroot;
+					sumnfnf=sumnfnf+prop_nfrnfrlist[l][0].value;
+					if(nfr1.compareTo(compselect)==0) {
+					while(temp!=null) {
+						if(temp.id.compareTo(nfr2)==0) {
+							if(temp.priority>0 && temp.priority<35)
+								prio2=prio2+1;
+							else if(temp.priority>=35 && temp.priority<75)
+								prio2=prio2+2;
+							else if(temp.priority>=75)
+								prio2=prio2+3;	
+						}
+						temp=temp.next;
+					}
+					System.out.println("Prio 2 = "+prio2);
+					}
+					else if(nfr2.compareTo(compselect)==0) {
+						while(temp!=null) {
+							if(temp.id.compareTo(nfr1)==0) {
+								if(temp.priority>0 && temp.priority<35)
+									prio2=prio2+1;
+								else if(temp.priority>=35 && temp.priority<75)
+									prio2=prio2+2;
+								else if(temp.priority>=75)
+									prio2=prio2+3;	
+							}
+							temp=temp.next;
+						}
+						}
+				}
+				temp=nfrroot;
+				while(temp!=null) {
+					if(temp.id.compareTo(compselect)==0) {
+						if(temp.priority>0 && temp.priority<35)
+							prio2=prio2+1;
+						else if(temp.priority>=35 && temp.priority<75)
+							prio2=prio2+2;
+						else if(temp.priority>=75)
+							prio2=prio2+3;	
+					}
+					temp=temp.next;
+				}
+			weight= (prio2)/(double)((double)6*((double)size3+(double)1));
+			System.out.println("Priority weight 1= "+prio1+" Priority weight 2= "+prio2+" Count= "+size3+1);
+			System.out.println("weight "+weight);
+			System.out.println("sumnfnf= "+sumnfnf);
+			sumnfnf=sumnfnf*weight;
+			sumnfnf= (double)(sumnfnf-(double)size3)/(double)((double)((double)100*(double)size3)-(double)size3);
+			System.out.println("sumnfnf= "+sumnfnf);
+			//double sumnfnfnormal= (double)(sumnfnf-(double)1)/(double)((double)100-(double)1);
+			riskmeasure.append("NFR-NFR Impact");
+			riskmeasure.append("\n");
+			text="Impact is "+sumnfnf;
+			riskmeasure.append(text);
+			riskmeasure.append("\n");
+			//Count total edges
+			int edgecount=0;
+			Edge1 root=frfrroot;
+			while(root!=null) {
+				edgecount++;
+				root=root.next;
+			}
+			root=frnfrroot;
+			while(root!=null) {
+				edgecount++;
+				root=root.next;
+			}
+			root=nfrnfrroot;
+			while(root!=null) {
+				edgecount++;
+				root=root.next;
+			}
+			int affectededgecount=size2+size3;
+			prob=(double)(affectededgecount)/(double)(edgecount);
+			impact=(double)(sumfnf+sumnfnf);
+			double risk= prob * impact;
+			System.out.println("Affected edge count "+affectededgecount+" \n Probability= "+prob+" \n Total Impact= "+impact+" \n Risk ="+risk);
+			//text="Maximum Impact is "+impact;
+			//riskmeasure.append(text);
+			//riskmeasure.append("\n");
+			text=" Maximum Risk is "+risk;
+			riskmeasure.append(text);
+			riskmeasure.append("\n");
+		}
+		String text="";
+		if(prob>=0 && prob<=0.2) {
+			text=" Risk Probability is Low. ";
+		}
+		else if(prob>0.2 && prob<=0.4) {
+			text=" Risk Probability is Moderate. ";
+		}
+		else if(prob>0.4 && prob<=0.6) {
+			text=" Risk Probability is Significant. ";
+		}
+		else if(prob>0.6 && prob<=0.8) {
+			text=" Risk Probability is Major. ";
+		}
+		else if(prob>0.8) {
+			text=" Risk Probability is High. ";
+		}
+		if(impact>=0 && impact<=0.2) {
+			text=text+" Risk Impact is Low. ";
+		}
+		else if(impact>0.2 && impact<=0.4) {
+			text=text+" Risk Impact is Moderate. ";
+		}
+		else if(impact>0.4 && impact<=0.6) {
+			text=text+" Risk Impact is Significant. ";
+		}
+		else if(impact>0.6 && impact<=0.8) {
+			text=text+" Risk Impact is Major. ";
+		}
+		else if(impact>0.8) {
+			text=text+" Risk impact is High. ";
+		}
+		riskmeasure.append(text);
+		riskmeasure.append("\n");
 	}
 	public static void createframe()
 	{
-		
 	      mainframe.setSize(1100, 800);
 	      Icon icon = new ImageIcon("C:\\Users\\refresh.png");
 	      Image image = ((ImageIcon) icon).getImage(); // transform it 

@@ -1,1 +1,2 @@
-nfr1 nfr2 50
+nfr1 nfr2 25
+nfr2 nfr3 40
