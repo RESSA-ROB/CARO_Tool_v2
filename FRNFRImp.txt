@@ -1,0 +1,12 @@
+fr2 nfr2 -60
+fr2 nfr3 -20
+fr4 nfr2 40
+fr4 nfr3 25
+fr5 nfr2 35
+fr7 nfr1 -25
+fr7 nfr3 -25
+fr6 nfr1 -25
+fr9 nfr2 -45
+fr9 nfr1 15
+fr10 nfr3 20
+fr1 nfr3 40

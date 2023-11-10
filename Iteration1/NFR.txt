@@ -1,0 +1,2 @@
+nfr1 First 75 0
+nfr2 Second 60 0

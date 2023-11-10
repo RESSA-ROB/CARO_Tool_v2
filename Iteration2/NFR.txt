@@ -1,0 +1,3 @@
+nfr1 First 75 75
+nfr2 Second 60 100
+nfr3 Third 80 100
