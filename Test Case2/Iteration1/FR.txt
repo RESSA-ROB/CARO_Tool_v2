@@ -1,0 +1,11 @@
+fr1 The system shall allow a real estate agent to query MLS information
+fr2 The user shall be able to get driving directions to a selected property
+fr3 The user shall be able to download appointments and contact information for clients
+fr4 The system shall display clear property images in the search results
+fr5 The system shall update or create new property listings in the MLS
+fr6 Realtor shall be able to generate a CMA report based on property criteria
+fr7 The system shall be able to call the seller or buyer to schedule an appointment
+fr8 The realtor shall be notified of new client appointments after automatic synchronization with office system
+fr9 The realtor shall be able to retrieve a map showing property locations for a specified area
+fr10 The system shall notify the realtor when a seller or buyer responds to an appointment request
+fr11 The product shall allow the user to save the property search results

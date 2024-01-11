@@ -1,3 +1,2 @@
-nfr1 First 75 75
-nfr2 Second 60 100
-nfr3 Third 80 100
+nfr1 The system shall store the delivery location for orders that are being delivered; 80 80
+nfr2 The website shall be available 24/7 for browsing and ordering, with clear communication of delivery and pickup scheduling constraints; 90 90

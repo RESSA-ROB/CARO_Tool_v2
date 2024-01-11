@@ -1,9 +1,9 @@
-fr1 First
-fr2 Second
-fr3 Third
-fr4 Fourth
-fr5 Fifth
-fr6 Sixth
-fr7 Seventh
-fr8 Eighth
-fr9 Ninth
+fr1 The system shall allow user to choose filling that they want
+fr2 The system shall allow user to choose their preferable topping
+fr3 The system shall allow user to decorate their doughnut
+fr4 The system shall give the user an opportunity for the user to choose the selection of doughnut provided
+fr5 The system should take the customer name
+fr6 The system should keep the customer contact number
+fr7 The system should keep the customer email
+fr8 The system should ask the user to key in the pickup date
+fr9 The system should require the user to state time when should the doughnut be delivered

@@ -1,0 +1,6 @@
+fr5 fr3 80
+fr5 fr6 75
+fr9 fr2 70
+fr7 fr8 75
+fr8 fr10 80
+fr4 fr11 60

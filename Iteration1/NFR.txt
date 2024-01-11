@@ -1,2 +1,2 @@
-nfr1 First 75 0
-nfr2 Second 60 0
+nfr1 The system should have to keep the location where the doughnut will be send; 80 80
+nfr2 The website is available whenever the users want to use it; 90 90

@@ -1,0 +1,874 @@
+String num="";
+	    	
+	    	try {
+	    		FileReader fr=new FileReader("Iteration.txt");
+	    		int i;
+	    		while((i=fr.read())!=-1) {
+	    			char c=(char)i;
+	    			if(i>=48 && i<=57)
+	    				num=num.concat(Character.toString(c));
+	    		}
+	    		fr.close();
+	    	}catch(IOException io) {
+	    		
+	    	}
+	    	//System.out.println("Num = "+num);
+	    	if((num.compareTo(""))==0)
+	    		iteration=0;
+	    	else
+	    	iteration=Integer.valueOf(num);
+	    	/*JFrame statsFrame=new JFrame("Analytics");
+	    	statsFrame.getContentPane().setBackground(new Color(255, 255, 153));
+	        try {
+	            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+	        }
+	        catch (Exception e) {
+	            System.out.println("Look and Feel not set");
+	        }
+	        statsFrame.setLayout(null);
+	        statsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	        statsFrame.setBounds(15, 6, 1320, 680);*/
+	        int j=0;
+	       	JButton[] buttons=new JButton[iteration];
+	       	int x=100;
+	       	int y=100;
+	       	//Creating the table
+	       
+	     	DefaultTableModel model2 = new DefaultTableModel();  
+	     //statdata=new JTable(model2);
+	  
+	     	model2.setDataVector(new Object[][]{},
+	     			new Object[]{"Iteration No.","FR","NFR","Dependency","Conflict","Temporal","FR","NFR","Dependency","Conflict","Temporal","Dependency","Conflict","User Choice","Edges", "Value","Total","Optimal", "Alternate"});
+	
+	       statdata = new JTable( model2 ) {
+	         protected JTableHeader createDefaultTableHeader() {
+	             return new GroupableTableHeader(columnModel);
+	         }
+	         
+	       };
+	       //statdata.getTableHeader().addMouseListener(l);
+	       String[] toolTips = {"Iteration Number", "Total Number of Functional Requirements", 
+	    		   "Total Number of Non-functional Requirements", 
+	    		   "Total Number of functional-non-functional requirement dependencies",
+	    		   "Total Number of Non-functional requirement conflicts",
+	    		   "Total Number of Temporal Dependencies between the Functional Requirements", 
+	    		   "Number of Functional Requirements Newly added in an iteration",
+	    		   "Number of Non-Functional Requirements Newly added in an iteration",
+	    		   "Number of Functional-Non-functional requirement dependencies Newly added in an iteration",
+	    		   "Number of Non-functional requirement conflicts Newly added in an iteration",
+	    		   "Number of Temporal Dependencies between the Functional Requirements Newly added in an iteration", 
+	    		   "Number of Functional-Non-functional requirement dependencies updated in an iteration",
+	    		   "Number of Non-functional requirement conflicts updated in an iteration",
+	    		   "Click to view User selected requirements for any iteration",
+	    		   "List of conflicting precedences",
+	    		   "Risk incurred in a particular iteration",
+	    		   "Total Risk",
+	    		   "Click Buttons to view Optimal partial Order",
+	    		   "Click Buttons to view Alternate partial Order"
+	    		   };
+	       
+	       ToolTipHeader tooltipHeader = new ToolTipHeader(statdata.getColumnModel());
+	       tooltipHeader.setToolTipStrings(toolTips);
+	       statdata.setTableHeader(tooltipHeader);
+	       statdata.getColumn("Optimal").setCellRenderer(new ButtonRenderer());
+	       statdata.getColumn("Optimal").setCellEditor(
+	           new ButtonEditor(new JCheckBox()));
+	       statdata.getColumn("Alternate").setCellRenderer(new ButtonRenderer());
+	       statdata.getColumn("Alternate").setCellEditor(
+	           new ButtonEditor(new JCheckBox()));
+	       statdata.getColumn("User Choice").setCellRenderer(new ButtonRenderer());
+	       statdata.getColumn("User Choice").setCellEditor(
+	           new ButtonEditor(new JCheckBox()));
+	       TableColumn tColumn;
+	       tColumn = statdata.getColumnModel().getColumn(1);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.yellow, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(2);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.yellow, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(3);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.yellow, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(4);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.yellow, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(5);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.yellow, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(6);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.green, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(7);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.green, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(8);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.green, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(9);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.green, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(10);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.green, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(11);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.blue, Color.white));
+	       tColumn = statdata.getColumnModel().getColumn(12);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.blue, Color.white));
+	       tColumn = statdata.getColumnModel().getColumn(14);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.pink, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(15);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.pink, Color.black));
+	       tColumn = statdata.getColumnModel().getColumn(16);
+	       tColumn.setCellRenderer(new ColumnColorRenderer(Color.pink, Color.black));
+	       TableColumnModel cm = statdata.getColumnModel();
+	       ColumnGroup g_name = new ColumnGroup("Total");
+	     
+	       g_name.add(cm.getColumn(1));
+	       g_name.add(cm.getColumn(2));
+	       g_name.add(cm.getColumn(3));
+	       g_name.add(cm.getColumn(4));
+	       g_name.add(cm.getColumn(5));
+	       ColumnGroup g_name2 = new ColumnGroup("Newly Added");
+	       g_name2.add(cm.getColumn(6));
+	       g_name2.add(cm.getColumn(7));
+	       g_name2.add(cm.getColumn(8));
+	       g_name2.add(cm.getColumn(9));
+	       g_name2.add(cm.getColumn(10));
+	       ColumnGroup g_name3 = new ColumnGroup("Updated");
+	       g_name3.add(cm.getColumn(11));
+	       g_name3.add(cm.getColumn(12));
+	       ColumnGroup g_name4 = new ColumnGroup("Risk Analysis");
+	       g_name4.add(cm.getColumn(13));
+	       g_name4.add(cm.getColumn(14));
+	       g_name4.add(cm.getColumn(15));
+	       g_name4.add(cm.getColumn(16));
+	       ColumnGroup g_name5 = new ColumnGroup("Partial Order");
+	       g_name5.add(cm.getColumn(17));
+	       g_name5.add(cm.getColumn(18));
+	       
+	       
+	       GroupableTableHeader header = (GroupableTableHeader)statdata.getTableHeader();
+	       header.addColumnGroup(g_name);
+	       header.addColumnGroup(g_name2);
+	       header.addColumnGroup(g_name3);
+	       header.addColumnGroup(g_name4);
+	       header.addColumnGroup(g_name5);
+	       Font f = new Font("TimesRoman",Font.BOLD,12);
+	       header.setFont(f);
+	       
+	      //statdata.getHe
+	      //setBorder(BorderFactory.createLineBorder(Color.black));
+	   //    statdata.setFillsViewportHeight(true);
+	       //statdata.setEnabled(false);
+			JScrollPane js=new JScrollPane(statdata);
+			//js.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+			statdata.setShowGrid(true);
+			//statdata.setShowHorizontalLines(true);
+			//statdata.setShowVerticalLines(true);;
+			js.setBounds(0, 20, 1300, 400);
+			js.setVisible(true);
+		statdata.setBackground(new Color(255, 229, 255));
+			panel3.add(js);
+			
+			
+			
+			// Adding data to table
+			 for(int k=1;k<=iteration;k++) {
+			DefaultTableModel model = (DefaultTableModel)statdata.getModel();
+			Object []o = new Object[19];
+	
+		
+			//Reading files
+			int clicked=k+1;
+			o[0]=clicked;
+			String p="Iteration"+iteration_count;
+				//read FRs
+				int count=0;
+				try {
+				FileReader f1=new FileReader(p+"\\FR.txt");
+				int i;
+				String temp="";
+				while((i=f1.read())!=-1) {
+					while((i=f1.read())!=10) {
+						//Do Nothing
+					}
+					count++;
+				}
+				System.out.println("FR count is"+count);
+				}
+				catch(IOException e1) {
+					
+				}
+			o[1]=count;
+			count=0;
+			try {
+			FileReader f1=new FileReader(p+"\\NFR.txt");
+			int i;
+			String temp="";
+			while((i=f1.read())!=-1) {
+				while((i=f1.read())!=10) {
+					//Do Nothing
+				}
+				count++;	
+			}
+			System.out.println("NFR count is"+count);
+			}
+			catch(IOException e1) {
+				
+			}
+		o[2]=count;
+		count=0;
+		try {
+		FileReader f1=new FileReader(p+"\\FRNFR.txt");
+		int i;
+		String temp="";
+		while((i=f1.read())!=-1) {
+			while((i=f1.read())!=10) {
+				//Do Nothing
+			}
+			count++;
+		}
+		System.out.println("Dep count is"+count);
+		}
+		catch(IOException e1) {
+			
+		}
+				o[3]=count;
+				count=0;
+				try {
+				FileReader f1=new FileReader(p+"\\NFRNFR.txt");
+				int i;
+				String temp="";
+				while((i=f1.read())!=-1) {
+					while((i=f1.read())!=10) {
+						//Do Nothing
+					}
+					count++;
+				}	
+				System.out.println("Con count is"+count);
+				}
+				catch(IOException e1) {
+					
+				}
+				o[4]=count;
+				count=0;
+				try {
+				FileReader f1=new FileReader(p+"\\FRFR.txt");
+				int i;
+				String temp="";
+				while((i=f1.read())!=-1) {
+					char c=(char)i;
+					//System.out.println(i);
+					temp="";
+					temp=temp.concat(Character.toString(c));
+					while((i=f1.read())!=32) {
+						c=(char)i;
+						//System.out.println(i);
+						if(i!=13 && i!=10)
+							temp=temp.concat(Character.toString(c));
+					}
+					//System.out.println("Temp is "+temp);
+				
+					if(temp.compareTo("count")==0)
+					{
+						temp="";
+						while((i=f1.read())!=10) {
+							c=(char)i;
+							//System.out.println(i);
+							if(i!=13)
+								temp=temp.concat(Character.toString(c));
+						}
+						count=Integer.valueOf(temp);
+						break;
+					}
+					else {
+						while((i=f1.read())!=10) {
+						
+						}
+						/*i=f1.read();
+						if(i==13)
+							i=f1.read();
+						}*/
+					//System.out.println(i);	
+				}
+				}
+				System.out.println("Tem count is"+count);
+				}
+				
+				catch(IOException e1) {
+					
+				}
+			o[5]=count;
+			if(k==1) //First iteration will not have any update
+			{
+				o[6]=0;
+				o[7]=0;
+				o[8]=0;
+				o[9]=0;
+				o[10]=0;
+				o[11]=0;
+				o[12]=0;
+				
+			}
+			else {
+				try {
+					frroot3=null;
+					String fname="Iteration"+k+"\\"+"FR.txt";
+					FileReader fread= new FileReader(fname);
+					int readc=0;
+					char c;
+					String temp="";
+					while((readc=fread.read())!=-1) {
+		    				c=(char)readc;
+		    				temp=temp.concat(Character.toString(c));
+		    				while((readc=fread.read())!=32) {
+		    					c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+		    			while((readc=fread.read())!=10) {
+		    				if(readc==-1)
+		    					break;
+							
+						}
+		    			Node tempnode=new Node();
+		    			tempnode.id=temp;
+		    			tempnode.next=null;
+		    			tempnode.impact=0;
+		    			if(frroot3==null)
+		    				frroot3=tempnode;
+		    			else {
+		    				Node k2=frroot3;
+		    				while(k2.next!=null)
+		    					k2=k2.next;
+		    				k2.next=tempnode;
+		    			}
+		    			temp="";
+		    		}
+					fread.close();
+					frroot4=null;
+					fname="Iteration"+(k-1)+"\\"+"FR.txt";
+					fread= new FileReader(fname);
+					temp="";
+					while((readc=fread.read())!=-1) {
+		    				c=(char)readc;
+		    				temp=temp.concat(Character.toString(c));
+		    				while((readc=fread.read())!=32) {
+		    					c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+		    			while((readc=fread.read())!=10) {
+		    				if(readc==-1)
+		    					break;
+							
+						}
+		    			Node tempnode=new Node();
+		    			tempnode.id=temp;
+		    			tempnode.next=null;
+		    			tempnode.impact=0;
+		    			if(frroot4==null)
+		    				frroot4=tempnode;
+		    			else {
+		    				Node k2=frroot4;
+		    				while(k2.next!=null)
+		    					k2=k2.next;
+		    				k2.next=tempnode;
+		    			}
+		    			temp="";
+		    		}
+					fread.close();
+					int countn=0;
+					Node j2=frroot3;
+					while(j2!=null) {
+						int flag=0;
+						Node j3=frroot4;
+						while(j3!=null) {
+							if(j3.id.compareTo(j2.id)==0)
+								flag=1;
+							j3=j3.next;
+						}
+						if(flag==0)
+							countn++;
+						j2=j2.next;
+					}
+					o[6]=countn;
+					nfrroot3=null;
+					fname="Iteration"+k+"\\"+"NFR.txt";
+					fread= new FileReader(fname);
+					readc=0;
+					temp="";
+					while((readc=fread.read())!=-1) {
+						Node tempnode=new Node();
+		    				c=(char)readc;
+		    				temp=temp.concat(Character.toString(c));
+		    				while((readc=fread.read())!=32) {
+		    					c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+		    				tempnode.id=temp;
+		    				temp="";
+		    			while((readc=fread.read())!=32) {
+						}
+		    			while((readc=fread.read())!=32) {
+		    				if(readc>=48 && readc<=57) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+						}
+		    			tempnode.priority=Integer.valueOf(temp);
+		    			temp="";
+		    			while((readc=fread.read())!=10) {
+		    				if(readc>=48 && readc<=57) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+						}
+		    			tempnode.satisfaction=Integer.valueOf(temp);
+		    	
+		    			tempnode.next=null;
+		    			if(nfrroot3==null)
+		    				nfrroot3=tempnode;
+		    			else {
+		    				Node k2=nfrroot3;
+		    				while(k2.next!=null)
+		    					k2=k2.next;
+		    				k2.next=tempnode;
+		    			}
+		    			temp="";
+		    		}
+					fread.close();
+					nfrroot4=null;
+					fname="Iteration"+(k-1)+"\\"+"NFR.txt";
+					fread= new FileReader(fname);
+					readc=0;
+					temp="";
+					while((readc=fread.read())!=-1) {
+						Node tempnode=new Node();
+		    				c=(char)readc;
+		    				temp=temp.concat(Character.toString(c));
+		    				while((readc=fread.read())!=32) {
+		    					c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+		    				tempnode.id=temp;
+		    				temp="";
+		    			while((readc=fread.read())!=32) {
+						}
+		    			while((readc=fread.read())!=32) {
+		    				if(readc>=48 && readc<=57) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+						}
+		    			tempnode.priority=Integer.valueOf(temp);
+		    			temp="";
+		    			while((readc=fread.read())!=10) {
+		    				if(readc>=48 && readc<=57) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+		    				}
+						}
+		    			tempnode.satisfaction=Integer.valueOf(temp);
+		    	
+		    			tempnode.next=null;
+		    			if(nfrroot4==null)
+		    				nfrroot4=tempnode;
+		    			else {
+		    				Node k2=nfrroot4;
+		    				while(k2.next!=null)
+		    					k2=k2.next;
+		    				k2.next=tempnode;
+		    			}
+		    			temp="";
+		    		}
+					fread.close();
+					countn=0;
+					j2=nfrroot3;
+					while(j2!=null) {
+						int flag=0;
+						Node j3=nfrroot4;
+						while(j3!=null) {
+							if(j3.id.compareTo(j2.id)==0)
+								flag=1;
+							j3=j3.next;
+						}
+						if(flag==0)
+							countn++;
+						j2=j2.next;
+					}
+					o[7]=countn;
+					frfrroot3=null;
+					fname="Iteration"+k+"\\"+"FRFR.txt";
+					fread= new FileReader(fname);
+					readc=0;
+					temp="";
+					while((readc=fread.read())!=-1) {
+						Edge1 tempnode=new Edge1();
+							c=(char)readc;
+							cn++;
+							temp=temp.concat(Character.toString(c));
+							while((readc=fread.read())!=32) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+							}
+							tempnode.id1=temp;
+							temp="";
+							while((readc=fread.read())!=32) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+							}
+							tempnode.id2=temp;
+							temp="";
+							while((readc=fread.read())!=32) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+							}
+							tempnode.type=temp;
+							temp="";
+							while((readc=fread.read())!=10) {
+								if(readc>=48 && readc<=57) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+								}
+							}
+							
+							int kval=Integer.valueOf(temp);
+							tempnode.value=kval;
+							tempnode.next=null;
+			    			if(frfrroot3==null)
+			    				frfrroot3=tempnode;
+			    			else {
+			    				Edge1 k2=frfrroot3;
+			    				while(k2.next!=null)
+			    					k2=k2.next;
+			    				k2.next=tempnode;
+			    			}
+			   
+			    			temp="";
+						}
+					fread.close();
+					frfrroot4=null;
+					fname="Iteration"+(k-1)+"\\"+"FRFR.txt";
+					fread= new FileReader(fname);
+					readc=0;
+					temp="";
+					while((readc=fread.read())!=-1) {
+						Edge1 tempnode=new Edge1();
+							c=(char)readc;
+							cn++;
+							temp=temp.concat(Character.toString(c));
+							while((readc=fread.read())!=32) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+							}
+							tempnode.id1=temp;
+							temp="";
+							while((readc=fread.read())!=32) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+							}
+							tempnode.id2=temp;
+							temp="";
+							while((readc=fread.read())!=32) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+							}
+							tempnode.type=temp;
+							temp="";
+							while((readc=fread.read())!=10) {
+								if(readc>=48 && readc<=57) {
+								c=(char)readc;
+			    				temp=temp.concat(Character.toString(c));
+								}
+							}
+							
+							int kval=Integer.valueOf(temp);
+							tempnode.value=kval;
+							tempnode.next=null;
+			    			if(frfrroot4==null)
+			    				frfrroot4=tempnode;
+			    			else {
+			    				Edge1 k2=frfrroot4;
+			    				while(k2.next!=null)
+			    					k2=k2.next;
+			    				k2.next=tempnode;
+			    			}
+			   
+			    			temp="";
+						}
+					Edge1 m1=frfrroot3;
+					countn=0;
+					while(m1!=null) {
+						Edge1 m2=frfrroot4;
+						int flag=0;
+						while(m2!=null) {
+							if(m2.id1.compareTo(m1.id1)==0 && (m2.id2.compareTo(m1.id2))==0)
+								flag=1;
+							m2=m2.next;
+						}
+						if(flag==0)
+							countn++;
+						m1=m1.next;
+					}
+					o[10]=countn;
+					fread.close();
+					}
+					catch(IOException e1) {
+						
+					}
+				try {
+					FileReader f1=new FileReader(p+"\\UpdateList.txt");
+					int i;
+					String temp="";
+					while((i=f1.read())!=-1) {
+						char c=(char)i;
+						//System.out.println(i);
+						temp="";
+						temp=temp.concat(Character.toString(c));
+						while((i=f1.read())!=32) {
+							c=(char)i;
+							//System.out.println(i);
+							if(i!=13 && i!=10)
+								temp=temp.concat(Character.toString(c));
+						}
+						//System.out.println("Temp is "+temp);
+					
+						if(temp.compareTo("Dependency")==0)
+						{
+							temp="";
+							while((i=f1.read())!=10) {
+								c=(char)i;
+								//System.out.println(i);
+								if(i!=13)
+									temp=temp.concat(Character.toString(c));
+							}
+							o[11]=temp;
+						}
+						if(temp.compareTo("Conflict")==0)
+						{
+							temp="";
+							while((i=f1.read())!=10) {
+								c=(char)i;
+								//System.out.println(i);
+								if(i!=13)
+									temp=temp.concat(Character.toString(c));
+							}
+							o[12]=temp;
+						}
+						
+						//System.out.println(i);	
+					}
+					//System.out.println("NFR count is"+count);
+					}
+					catch(IOException e1) {
+						
+					}
+			}
+			count=0;
+			String list="";
+			try {
+			FileReader f1=new FileReader(p+"\\ChoiceList.txt");
+			int i;
+			String temp="";
+			
+			while((i=f1.read())!=-1) {
+				char c=(char)i;
+				//System.out.println(i);
+				temp="";
+				temp=temp.concat(Character.toString(c));
+				while((i=f1.read())!=32) {
+					c=(char)i;
+					//System.out.println(i);
+					if(i!=13 && i!=10)
+						temp=temp.concat(Character.toString(c));
+				}
+				System.out.println("Temp is "+temp);
+			list=list.concat(temp+" || ");
+					i=f1.read();
+				if(i==13)
+					i=f1.read();
+				}
+				//System.out.println(i);	
+			}
+			catch(IOException e1) {
+				
+			}
+			o[13]="View"+String.valueOf(k+1);
+			//o[13]=list;
+			count=0;
+			try {
+			FileReader f1=new FileReader(p+"\\Risk.txt");
+			int i;
+			String temp="";
+			while((i=f1.read())!=-1) {
+				char c=(char)i;
+				//System.out.println(i);
+				temp="";
+				temp=temp.concat(Character.toString(c));
+				while((i=f1.read())!=32) {
+					c=(char)i;
+					//System.out.println(i);
+					if(i!=13 && i!=10)
+						temp=temp.concat(Character.toString(c));
+				}
+				//System.out.println("Temp is "+temp);
+			
+				if(temp.compareTo("Conflict")==0)
+				{
+					temp="";
+					while((i=f1.read())!=10) {
+						c=(char)i;
+						//System.out.println(i);
+						if(i!=13)
+							temp=temp.concat(Character.toString(c));
+					}
+					o[14]=temp;
+					
+				}
+				else if(temp.compareTo("Risk")==0)
+				{
+					temp="";
+					while((i=f1.read())!=10) {
+						c=(char)i;
+						//System.out.println(i);
+						if(i!=13)
+							temp=temp.concat(Character.toString(c));
+					}
+					o[15]=temp;
+					
+				}
+				else {
+					while((i=f1.read())!=10) {
+						
+					}
+					/*i=f1.read();
+					if(i==13)
+						i=f1.read();
+					}*/
+				//System.out.println(i);	
+			}
+			}	
+		
+			
+			}
+			catch(IOException e1) {
+				
+			}
+			try {
+				FileReader f1=new FileReader(p+"\\TotalRisk.txt");
+				int i;
+				String temp="";
+				//System.out.println("reading total risk value");
+				while((i=f1.read())!=-1) {
+					char c=(char)i;
+					System.out.println(i);
+				
+					if(i!=10 && i!=13)
+					temp=temp.concat(Character.toString(c));
+					System.out.println("temp="+temp);
+				
+					}
+				//	System.out.println("Total Risk= "+temp);	
+				o[16]=temp;
+				}
+				catch(IOException e1) {
+					
+				}
+	
+			o[17]="PO"+String.valueOf(k+1);
+			o[18]="AP"+String.valueOf(k+1);
+			model.addRow(o);
+			// statdata.getColumnModel().getColumn(16).setCellRenderer(new ClientsTableButtonRenderer());
+			  //statdata.getColumnModel().getColumn(16).setCellEditor(new ClientsTableRenderer(new JCheckBox()));
+			//statdata.setValueAt(b1, 0, 16);
+			 }
+			 statsFrame.addWindowListener(new WindowAdapter() {
+			      public void windowClosing(WindowEvent e) {
+			       // System.exit(0);
+			      }
+			    });	
+			 
+			 //Adding graph
+			 
+			 JLabel l1=new JLabel("Select a parameter");
+			 l1.setFont(new Font("Calibri", 2, 18));
+		     l1.setBounds(560, 450, 200, 30);
+		     statsFrame.add(l1);
+		     JComboBox c1=new JComboBox();
+		     c1.setBounds(560, 490, 100, 40);
+	         statsFrame.add(c1);
+	        c1.addItem("");
+	        c1.addItem("FR");
+	        c1.addItem("NFR");
+	        c1.addItem("Dependency");
+	        c1.addItem("Conflict");
+	        c1.addItem("Temporal");
+	        c1.addItem("Risk");
+	        JButton b1=new JButton("Generate");
+	        b1.setToolTipText("Click to Generate a Graph");
+	        b1.setFont(new Font("Calibri", 2, 16));
+	        b1.setBackground(new Color(255, 204, 204));
+	        b1.setForeground(Color.black);
+	        b1.setBounds(670, 490, 180, 40);
+	        statsFrame.add(b1);
+	        b1.addActionListener(new ActionListener() {
+	             @Override
+	              public void actionPerformed(final ActionEvent e) {
+	            	 String s1=c1.getSelectedItem().toString();
+	             	if((s1.compareTo(""))!=0) {
+	             		// Create the Arrays
+	             		int[] a1=new int[1000];
+	             		int[] a2=new int[1000];
+	             		int[] a3=new int[1000];
+	             		double[] a4 = new double[1000];
+	             		double[] a5 = new double[1000];
+	        			int num=statdata.getRowCount();
+	        			if(num==0) {
+	             			JOptionPane.showMessageDialog(statsFrame,"No Data Available!!");
+	         			}
+	        			else {
+	             		if(s1.compareTo("FR")==0) {
+	             			int k=1;
+	                		for(int j=0;j<num;j++) {
+	                			a1[j]=Integer.valueOf(statdata.getValueAt(j, 1).toString());
+	                			a2[j]=Integer.valueOf(statdata.getValueAt(j, 6).toString());
+	                			}
+	                		LineChart_AWT.graphGenerate(num, s1, a1, a2, a3,a4,a5);
+	                		}
+	             		else if (s1.compareTo("NFR")==0) {
+	                		for(int j=0;j<num;j++) {
+	                			a1[j]=Integer.valueOf(statdata.getValueAt(j, 2).toString());
+	                			a2[j]=Integer.valueOf(statdata.getValueAt(j, 7).toString());
+	                			}
+	                		LineChart_AWT.graphGenerate(num, s1, a1, a2, a3,a4,a5);
+	                		}
+	             		else if (s1.compareTo("Dependency")==0) {
+	                		for(int j=0;j<num;j++) {
+	                			a1[j]=Integer.valueOf(statdata.getValueAt(j, 3).toString());
+	                			a2[j]=Integer.valueOf(statdata.getValueAt(j, 8).toString());
+	                			a3[j]=Integer.valueOf(statdata.getValueAt(j, 11).toString());
+	                			}
+	                		LineChart_AWT.graphGenerate(num, s1, a1, a2, a3,a4,a5);
+	                		}
+	             		else if (s1.compareTo("Conflict")==0) {
+	                		for(int j=0;j<num;j++) {
+	                			a1[j]=Integer.valueOf(statdata.getValueAt(j, 4).toString());
+	                			a2[j]=Integer.valueOf(statdata.getValueAt(j, 9).toString());
+	                			a3[j]=Integer.valueOf(statdata.getValueAt(j, 12).toString());
+	                			}
+	                		LineChart_AWT.graphGenerate(num, s1, a1, a2, a3,a4,a5);
+	                		}
+	             		else if (s1.compareTo("Temporal")==0) {
+	                		for(int j=0;j<num;j++) {
+	                			a1[j]=Integer.valueOf(statdata.getValueAt(j, 5).toString());
+	                			a2[j]=Integer.valueOf(statdata.getValueAt(j, 10).toString());
+	                			}
+	                		LineChart_AWT.graphGenerate(num, s1, a1, a2, a3,a4,a5);
+	                		}
+	             		else if (s1.compareTo("Risk")==0) {
+	                		for(int j=0;j<num;j++) {
+	                			a4[j]=Double.parseDouble(statdata.getValueAt(j, 15).toString());
+	                			a5[j]=Double.parseDouble(statdata.getValueAt(j, 16).toString());
+	                			}
+	                		LineChart_AWT.graphGenerate(num, s1, a1, a2, a3,a4,a5);
+	                		}
+	             		}
+	             	}
+	             	else {
+	             			JOptionPane.showMessageDialog(statsFrame,"Select a parameter!");
+	             	}
+	             
+	              }
+	          });
+	        
+	        
+	        statsFrame.setVisible(true);

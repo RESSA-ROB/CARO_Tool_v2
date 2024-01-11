@@ -1,4 +1,1 @@
-fr2 fr4 70 Coupling fr4 fr5 95 Coupling fr5 fr7 90 Coupling
-fr2 fr5 85 Coupling fr5 fr7 90 Coupling
-fr2 fr7 65 Cohesion
-fr2 fr4 70 Coupling fr4 fr6 90 Coupling fr6 fr9 85 Coupling
+fr8 fr9 90 Cohesion 0.9
