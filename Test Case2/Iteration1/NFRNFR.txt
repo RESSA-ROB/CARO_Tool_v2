@@ -1,9 +1,0 @@
-nfr5 nfr6 30
-nfr21 nfr22 30
-nfr23 nfr22 80
-nfr24 nfr25 60
-nfr27 nfr28 40
-nfr5 nfr25 60
-nfr6 nfr27 50
-nfr14 nfr17 70
-nfr26 nfr17 30

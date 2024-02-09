@@ -345,6 +345,7 @@ class plist
     
 }
 public class SwingDemo extends JFrame{
+	static String riskType="";
 	static JFrame mainframe = new JFrame();
 	static JPanel panel = new JPanel();
 	static JPanel panel1 = new JPanel();
@@ -514,6 +515,8 @@ public class SwingDemo extends JFrame{
 	static int indexitems=0;
     static JPanel comboPanel = new JPanel();
     static JComboBox comboBox=new JComboBox();
+    static plist rootAl=null;
+    static plist rootAl2=null;
     //Function for Add Rqeuirements Button
 	public static void construct_panel6() {
 		// Setting heading
@@ -14128,7 +14131,7 @@ public class SwingDemo extends JFrame{
 	       sp3.setBackground(new Color(204, 204, 204));
 	        sp3.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 	  
-	        
+	    System.out.println("Executing Risk Measure Here!");    
 		calculate_risk();
     	create_riskgraph();
         riskpanel2.add(sp3);
@@ -14393,8 +14396,264 @@ public class SwingDemo extends JFrame{
        // exist_path();
         setText();
         remove_overlap();
+        determine_alternates();
         setOrderInFrame();
+        
 	}
+	public static void determine_alternates() {
+		System.out.println("Alternates determined");
+		plist m=rootOp2;
+		rootAl=null;
+		int count=0;
+		while(m!=null) {
+			rootAl=null;
+			if(m.val!=-1) {
+				//Copy list at index m
+		        plist templist=new plist();
+		        for (sNode n = m.begin; n != null; n = n.next) {
+		        	sNode nodes=new sNode();
+		        	nodes.id=n.id;
+		        	nodes.next=null;
+		        	if(templist.begin==null)
+		        		templist.begin=nodes;
+		        	else {
+		        		sNode j=templist.begin;
+		        		while(j.next!=null)
+		        			j=j.next;
+		        		j.next=nodes;
+		        	}
+		        }
+		        if(rootAl==null) {
+		        	rootAl=templist;
+		        	rootAl.next=null;
+		        	}
+		        else {
+		        	plist t3=rootAl;
+		        	while(t3.next!=null)
+		        		t3=t3.next;
+		        	t3.next=templist;
+		        }
+		        int repeatflag=1;
+		        while(repeatflag==1) {
+		        	repeatflag=0;
+		        	//Start with last inserted list always
+		        	plist t3=rootAl;
+		        	while(t3.next!=null)
+		        		t3=t3.next;
+		        	int flag=0;
+			    	int val1=0;
+			    	int val2=0;
+			        String temp1="";
+			        String temp2="";
+			        int diff=0;
+			        System.out.println("Repeat flag value before = "+repeatflag);
+			        for (sNode n = t3.begin; n != null; n = n.next) {
+			   
+			            if (n.next != null) {
+			                temp1 = String.valueOf(n.id);
+			                temp2= String.valueOf(n.next.id);
+			    	        System.out.println("Loop pair : temp1 "+temp1+" temp2 "+temp2);
+			                Node check=frchangeroot;
+			                int found=0;
+			                while(check!=null) {
+			                	if(check.id.compareTo(temp1)==0)
+			                		found=1;
+			                	check=check.next;
+			                }
+			                if(found==0) {
+			                	//Check if the pair has temporal dependency
+			                	int checktemp=0;
+			                	Edge1 t1=frfrroot;
+			                	while(t1!=null) {
+			                		if(t1.id1.compareTo(temp1)==0 && t1.id2.compareTo(temp2)==0) {
+			                			checktemp=1;
+			                			if(t1.type.compareTo("Cohesion")==0 && t1.value<=70)
+			                				flag=1;
+			                			break;
+			                		}
+			                		t1=t1.next;
+			                	}
+			                	//If pair do not have temporal dependency, check if they share a common NFR
+			                	if(checktemp==0) {
+			                		System.out.println("Temporal Dependency does not exists!");
+			                		t1=frnfrroot;
+			                		int tval1=0;
+			                		int tval2=0;
+			                		while(t1!=null) {
+			                			if(t1.id1.compareTo(temp1)==0) {
+			                				String nfr=t1.id2;
+			                				tval1=t1.value;
+			                				Edge1 t2=frnfrroot;
+			                				while(t2!=null) {
+			                					if(t2.id1.compareTo(temp2)==0)
+			                						if(t2.id2.compareTo(nfr)==0) {
+			                							tval2=t2.value;
+			                							flag=1;
+			                						}
+			                					t2=t2.next;
+			                				}
+			                				if(val1<=tval1 && val2<=tval2) {
+			                					val1=tval1;
+			                					val2=tval2;
+			                				}
+			                			}
+			                			t1=t1.next;
+			                		}
+			                		if(flag==1) {
+			                			flag=0;
+			                			diff=Math.abs(val2-val1);
+			                			if(diff<=5)
+			                				flag=1;
+			                		}
+			                	}
+			                }
+			                if(flag==1)
+			                {
+			                	int exist=0;
+			                	for (sNode t5 = t3.begin; t5.next != null; t5 = t5.next) {
+			                		String id1=t5.id;
+			                		String id2=t5.next.id;
+			                		if(temp1.compareTo(id2)==0 && temp2.compareTo(id1)==0) {
+			                			exist=1;
+			                			break;
+			                		}
+			                		
+			                	}
+			                	
+			                	if(exist==1)
+			                		flag=0;
+			                	else {
+			                		System.out.println("Does not satisfy if condition above");
+			                		int f1=0, f2=0;
+		                		    plist t4=rootAl;
+		    			        	while(t4!=null) {
+		    			        		f1=0; 
+		    			        		f2=0;
+		    				        for (sNode p = t4.begin; p != null; p = p.next) {
+		    					    	if(p.id.compareTo(temp2)==0 && f2 ==0) {
+		    					    		f1=1;
+		    					    	}
+		    					    	if(p.id.compareTo(temp1)==0 && f1 ==1) {
+		    					    		f2=1;
+		    					    	}	
+		    					    }
+		    				        System.out.println("f2= "+f2+ "f1 = "+f1);
+		    				        if(f1==1 && f2==1) {
+		    				        	exist=1;
+		    				        	flag=0;
+		    				        	break;
+		    				        }
+		    				        t4=t4.next;
+		                		}
+			                	}
+			                	
+			                	  if(exist==0)
+					                	break;
+			                }
+			              
+			            }  
+			        }
+			        if(flag==1) {
+			        	repeatflag=1;
+				        System.out.println("After Loop pair : temp1 "+temp1+" temp2 "+temp2);
+				        sNode list=null;
+				        plist templist2=new plist();
+				        for (sNode n = t3.begin; n != null; n = n.next) {
+				        	sNode nodes=new sNode();
+				        	nodes.id=n.id;
+				        	nodes.next=null;
+				        	if(templist2.begin==null)
+				        		templist2.begin=nodes;
+				        	else {
+				        		sNode j=templist2.begin;
+				        		while(j.next!=null)
+				        			j=j.next;
+				        		j.next=nodes;
+				        	}
+				        	//System.out.println("Here I am with id "+n.id);
+				        	
+				        }
+				        //System.out.println("After second loop ");
+				        if(rootAl==null) {
+				        	rootAl=templist2;
+				        	rootAl.next=null;
+				        	}
+				        else {
+				        	plist t4=rootAl;
+				        	while(t4.next!=null)
+				        		t4=t4.next;
+				        	t4.next=templist2;
+				        }
+				       plist t4=rootAl;
+			        	while(t4.next!=null)
+			        		t4=t4.next;
+				        for (sNode n = t4.begin; n != null; n = n.next) {
+				        	if(n.next!=null) {
+					    	if(n.id.compareTo(temp1)==0 && n.next.id.compareTo(temp2)==0) {
+					    		n.id=temp2;
+					    		n.next.id=temp1;
+					    	}
+				        	}
+					    		
+					    }
+					    
+				        //Now for last inserted chain do order checking
+				        
+				        }
+			        System.out.println("Repeat flag value after = "+repeatflag);
+		        }
+			
+			System.out.println("Outside While Loop");
+			//Copy rootAl to rootAl2
+			plist point=rootAl;
+			count++;
+			while(point!=null) {
+			     plist templist2=new plist();
+			     templist2.val=count;
+			        for (sNode n = point.begin; n != null; n = n.next) {
+			        	sNode nodes=new sNode();
+			        	nodes.id=n.id;
+			        	nodes.next=null;
+			        	if(templist2.begin==null)
+			        		templist2.begin=nodes;
+			        	else {
+			        		sNode j=templist2.begin;
+			        		while(j.next!=null)
+			        			j=j.next;
+			        		j.next=nodes;
+			        	}
+			        	//System.out.println("Here I am with id "+n.id);
+			        	
+			        }
+			        if(rootAl2==null) {
+			        	rootAl2=templist2;
+			        	rootAl2.next=null;
+			        	}
+			        else {
+			        	plist t4=rootAl2;
+			        	while(t4.next!=null)
+			        		t4=t4.next;
+			        	t4.next=templist2;
+			        }
+			        point=point.next;
+			}
+		}
+			m=m.next;
+			
+		}
+		System.out.println("Alternate Orders are ");
+		plist t4=rootAl2;
+		while(t4!=null) {
+			System.out.println("For chain ID "+t4.val);
+        for (sNode n = t4.begin; n != null; n = n.next) {
+        	System.out.print(n.id+" ");
+        }
+        System.out.println();
+        t4=t4.next;
+		}
+		//setOrderInFrame();
+	}
+	
 	public static void print_list2() {
 		Node t1=frroot2;
 		System.out.println("Printing List 2");
@@ -14596,6 +14855,10 @@ public class SwingDemo extends JFrame{
 	    							flagc=1;
 	    					}
 	    				}
+					}
+					for(int i=0; i<size2; i++) {
+	    				if(prop_frnfrlist[i][0].id1.compareTo(tempnode.id1)==0 || prop_frnfrlist[i][0].id1.compareTo(tempnode.id2)==0)
+	    							flagc=1;
 	    			}
 					if(flagc==1) {
 	    			if(frfrroot2==null)
@@ -14719,6 +14982,18 @@ public class SwingDemo extends JFrame{
 		
 		}catch(IOException e5) {
 			
+		}
+		System.out.println("Data of frfrroot2");
+		Edge1 point=frfrroot2;
+		while(point!=null) {
+			System.out.println(point.id1+" -> "+point.id2);
+			point=point.next;
+		}
+		System.out.println("Data of frroot2");
+		Node point2=frroot2;
+		while(point2!=null) {
+			System.out.println(point2.id);
+			point2=point2.next;
 		}
 	}
 	public static void create_basiccluster2() {
@@ -16249,18 +16524,32 @@ public static void remove_overlap() {
 		int c=0;
 		int c2=0;
 		for(sNode j=m.begin; j!=null; j=j.next) {
-			c++;
+			if(j.next!=null) {
+				for(sNode u=j.next; u!=null; u=u.next)
+					c++;
+			}
 		}
-		String s1=m.begin.id;
+		//String s1=m.begin.id;
 		
-		plist n=m.next;
+		plist n=rootOp2;
+		
 		
 		while(n!=null) {
+			if(n==m)
+				n=n.next;
+			if(n!=null) {
 			//Taking each pair with m list and compairing with rest
 			flag1=0;
 			flag2=0;
 			c2=0;
-			for(sNode j=m.begin; j!=null; j=j.next) {
+			sNode t=m.begin;
+			while(t!=null) {
+				flag1=0;
+				flag2=0;
+				String s1=t.id;
+			for(sNode j=t.next; j!=null; j=j.next) {
+				flag1=0;
+				flag2=0;
 				String s2=j.id;
 			 System.out.println("S1= "+s1+" S2= "+s2);
 			for(sNode k=n.begin; k!=null; k=k.next) {
@@ -16269,15 +16558,17 @@ public static void remove_overlap() {
 				if(k.id.compareTo(s1)==0)
 					flag2=1;
 			}
-			if(flag1==1 && flag2==1)
+			if(flag1==1 && flag2==1) {
+				System.out.println("Found");
 				c2++;
-			
 			}
-			
-			
+			}
+			t=t.next;
+		}
 			if(c2==c)
 				break;
 			n=n.next;
+		}
 		}
 		System.out.println("C2 value is "+c2);
 		System.out.println("C value is "+c);
@@ -16287,6 +16578,7 @@ public static void remove_overlap() {
 	}
 }
 public static void setOrderInFrame() {
+	System.out.println("Order in frame called");
 	riskmitigation.append("\n Optimal Change Handling Order");
 	riskmitigation.append("\n");
     plist m = rootOp2;
@@ -16305,9 +16597,66 @@ public static void setOrderInFrame() {
         riskmitigation.append("\n");
     	}
         m = m.next;
-       
-    	
     }
+    riskmitigation.append("\n The possible set of alternate orders are: ");
+	riskmitigation.append("\n");
+	
+	m=rootAl2;
+	double previd=0;
+	    while (m != null) {	
+	    	//System.out.println("m.val= "+m.val);
+	    	plist k = rootAl2;
+		previd=m.val;
+	        int count=0;
+	        while(k!=null) {
+	        	if(k.val==m.val)
+	        		count++;
+	        	k=k.next;
+	        }
+	        int num=0;
+	        if(riskType.compareTo("Low")==0)
+	        	num= (int)Math.ceil(0.8*count);
+	        else if(riskType.compareTo("Moderate")==0)
+	        	num= (int)Math.ceil(0.6*count);
+	        else if(riskType.compareTo("Significant")==0)
+	        	num= (int)Math.ceil(0.4*count);
+	        else
+	        	num= (int)Math.ceil(0.2*count);
+	        System.out.println("Count = "+count+" Num = "+num);
+	      
+	        int iterate=0;
+	    	
+	    	
+	    	while(iterate!=num) {
+	    	System.out.println("Iterate= "+iterate);
+	        for (sNode n = m.begin; n != null; n = n.next) {
+	            String temp;
+	            if (n.next != null) {
+	                temp = String.valueOf(n.id) + "->";
+	            }
+	            else {
+	                temp = n.id;
+	            }
+	            riskmitigation.append(temp);
+	        }
+	        iterate++;
+	        riskmitigation.append("\n");
+	        m = m.next;
+	        if(m==null)
+	        	break;
+	        
+	    	}
+	    if(m!=null) {	
+		while(m.val==previd){
+			m=m.next;
+			if(m==null)
+	        	break;
+		}
+	    }
+		  riskmitigation.append("\n");
+	       System.out.println("Resuming m loop!");     
+	    }
+    
 }
 	public static void create_list() {
 		//FR List
@@ -17590,6 +17939,16 @@ public static void setOrderInFrame() {
 		prob=(double)(affectededgecount)/(double)(edgecount);
 		double sumffnormal= (double)(maximpact-(double)1)/(double)((double)100-(double)1);
 		impact=(double)(maximpact+sumfnf+sumnfnf);
+		if(impact>1) // then put impact as max of the three
+		{
+			if(maximpact>=sumfnf && maximpact>=sumnfnf)
+				impact=maximpact;
+			else if(sumfnf>maximpact && sumfnf>sumnfnf)
+				impact=sumfnf;
+			else
+				impact=sumnfnf;
+			
+		}
 		double risk= prob * impact;
 		text="Probability is "+prob;
 		riskmeasure.append(text);
@@ -17733,35 +18092,161 @@ public static void setOrderInFrame() {
 			riskmeasure.append("\n");*/
 		
 		String text2="";
+		String p="";
+		String i="";
 		if(prob>=0 && prob<=0.2) {
 			text2=" Risk Probability is Low. ";
+			p="Low";
 		}
 		else if(prob>0.2 && prob<=0.4) {
 			text2=" Risk Probability is Moderate. ";
+			p="Moderate";
 		}
 		else if(prob>0.4 && prob<=0.6) {
 			text2=" Risk Probability is Significant. ";
+			p="Significant";
 		}
 		else if(prob>0.6 && prob<=0.8) {
 			text2=" Risk Probability is Major. ";
+			p="Major";
 		}
 		else if(prob>0.8) {
 			text2=" Risk Probability is High. ";
+			p="High";
 		}
 		if(impact>=0 && impact<=0.2) {
 			text2=text2+" Risk Impact is Low. ";
+			i="Low";
 		}
 		else if(impact>0.2 && impact<=0.4) {
 			text2=text2+" Risk Impact is Moderate. ";
+			i="Moderate";
 		}
 		else if(impact>0.4 && impact<=0.6) {
 			text2=text2+" Risk Impact is Significant. ";
+			i="Significant";
 		}
 		else if(impact>0.6 && impact<=0.8) {
 			text2=text2+" Risk Impact is Major. ";
+			i="Major";
 		}
 		else if(impact>0.8) {
 			text2=text2+" Risk impact is High. ";
+			i="High";
+		}
+		
+		riskmeasure.append(text2);
+		riskmeasure.append("\n");
+		System.out.println(text2);
+		if(p.compareTo("Low")==0) {
+			if(i.compareTo("Low")==0) {
+				text2=" Risk is in green region that is LOW";
+				riskType="Low";
+			}
+			else if(i.compareTo("Moderate")==0) {
+				text2=" Risk is in green region that is LOW";
+				riskType="Low";
+			}
+			else if(i.compareTo("Significant")==0) {
+				text2=" Risk is in green region that is LOW";
+				riskType="Low";
+			}
+			else if(i.compareTo("Major")==0) {
+				text2=" Risk is in yellow region that is MODERATE";
+				riskType="Moderate";
+			}
+			else if(i.compareTo("High")==0) {
+				text2=" Risk is in yellow region that is MODERATE";
+				riskType="Moderate";
+			}
+		}
+		else if(p.compareTo("Moderate")==0) {
+			if(i.compareTo("Low")==0) {
+				text2=" Risk is in green region that is LOW";
+				riskType="Low";
+			}
+			else if(i.compareTo("Moderate")==0) {
+				text2=" Risk is in yellow region that is MODERATE";
+				riskType="Moderate";
+			}
+			else if(i.compareTo("Significant")==0) {
+				text2=" Risk is in yellow region that is MODERATE";
+				riskType="Moderate";
+			}
+			else if(i.compareTo("Major")==0) {
+				text2=" Risk is in orange region that is SIGNIFICANT";
+				riskType="Significant";
+			}
+			else if(i.compareTo("High")==0) {
+				text2=" Risk is in orange region that is SIGNIFICANT";
+				riskType="Significant";
+			}
+		}
+		else if(p.compareTo("Significant")==0) {
+			if(i.compareTo("Low")==0) {
+				text2=" Risk is in green region that is LOW";
+				riskType="Low";
+			}
+			else if(i.compareTo("Moderate")==0) {
+				text2=" Risk is in yellow region that is MODERATE";
+				riskType="Moderate";
+			}
+			else if(i.compareTo("Significant")==0) {
+				text2=" Risk is in orange region that is SIGNIFICANT";
+				riskType="Significant";
+			}
+			else if(i.compareTo("Major")==0) {
+				text2=" Risk is in orange region that is SIGNIFICANT";
+				riskType="Significant";
+			}
+			else if(i.compareTo("High")==0) {
+				text2=" Risk is in red region that is HIGH";
+				riskType="High";
+			}
+		}
+		else if(p.compareTo("Major")==0) {
+			if(i.compareTo("Low")==0) {
+				text2=" Risk is in yellow region that is MODERATE";
+				riskType="Moderate";
+			}
+			else if(i.compareTo("Moderate")==0) {
+				text2=" Risk is in orange region that is SIGNIFICANT";
+				riskType="Significant";
+			}
+			else if(i.compareTo("Significant")==0) {
+				text2=" Risk is in orange region that is SIGNIFICANT";
+				riskType="Significant";
+			}
+			else if(i.compareTo("Major")==0) {
+				text2=" Risk is in red region that is HIGH";
+				riskType="High";
+			}
+			else if(i.compareTo("High")==0) {
+				text2=" Risk is in red region that is HIGH";
+				riskType="High";
+			}
+		}
+		else if(p.compareTo("High")==0) {
+			if(i.compareTo("Low")==0) {
+				text2=" Risk is in yellow region that is MODERATE";
+				riskType="Moderate";
+			}
+			else if(i.compareTo("Moderate")==0) {
+				text2=" Risk is in orange region that is SIGNIFICANT";
+				riskType="Significant";
+			}
+			else if(i.compareTo("Significant")==0) {
+				text2=" Risk is in red region that is HIGH";
+				riskType="High";
+			}
+			else if(i.compareTo("Major")==0) {
+				text2=" Risk is in red region that is HIGH";
+				riskType="High";
+			}
+			else if(i.compareTo("High")==0) {
+				text2=" Risk is in red region that is HIGH";
+				riskType="High";
+			}
 		}
 		riskmeasure.append(text2);
 		riskmeasure.append("\n");
@@ -19856,6 +20341,7 @@ public static void setOrderInFrame() {
      		determine_change_order();
      	}
         riskpanel3.add(sp4);
+       // determine_alternates();
         riskmitigation.setEditable(false);
 		}
 	}
